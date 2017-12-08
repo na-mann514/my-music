@@ -1,0 +1,28 @@
+<?php
+
+/* 
+ * To change this license header, choose License Headers in Project Properties.
+ * To change this template file, choose Tools | Templates
+ * and open the template in the editor.
+ */
+
+
+function db_connect() {
+    static $connection;
+    
+    if(!isset($connection)) {
+        $ini_array = parse_ini_file("properties.ini");
+        $host = $ini_array['host'];
+        $username = $ini_array['username'];
+        $password = $ini_array['password'];
+        $db_name = $ini_array['db_name'];
+        
+        $connection = new PDO("mysql:host=$host;dbname=$db_name","$username", "$password");
+        
+        if($connection == false) {
+            return mysqli_connect_error();
+        }
+    }
+    
+    return $connection;
+}
