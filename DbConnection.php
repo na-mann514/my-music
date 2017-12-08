@@ -27,9 +27,6 @@ Class DBConnection {
             if (self::$connection == false) {
                 return mysqli_connect_error();
             }
-            else {
-                echo "Connected successfully";
-            }
         }
 
         return self::$connection;
