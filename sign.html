@@ -1,0 +1,203 @@
+<!doctype html>
+ <title>SIGN UP</title>
+<head>
+//<meta name="viewport" content="width=device-width, initial-scale=1">
+</head>
+<BODY>
+
+
+<div id="forms">
+<div class="scroll">
+<form name="myForm" action="insert_query.php" onsubmit="return validateForm()" method="post">
+User name:<br>
+<input type="text" name="UName" id="UName">
+<br>
+<br>
+
+Name:<br>
+<input type="text" name="Name" id="Name">
+<br>
+<br>
+
+Email id:<br>
+<input type="email" name="Email" id="Email">
+<br>
+<br>
+
+City:<br>
+<input type="text" name="City" id="City">
+<br>
+<br>
+
+Password:<br>
+<input type="password" name="Pass" id="Pass">
+<br>
+<br>
+<br><br>
+<br>
+<br>
+
+
+  <input type="checkbox" name="terms" value="term"> I agree with the terms & conditions
+<br>
+<br>
+
+<input type="submit" value="Submit">
+  <br>
+  <br>
+  </div>
+  </div>
+  </body>
+</form>
+  <script>
+  
+  function validateForm() {
+    var x = document.forms["myForm"]["UName"].value;
+    if (x == null || x == "") {
+        alert("User Name must be filled out");
+        return false;
+    } 
+    x = document.forms["myForm"]["Name"].value;
+    if (x == null || x == "") {
+        alert("Name must be filled out");
+        return false;
+    }
+
+    x = document.forms["myForm"]["Email"].value;
+    if (x == null || x == "") {
+        alert("Email must be filled out");
+        return false;
+    }
+
+    atpos = x.indexOf("@");
+    dotpos = x.lastIndexOf(".");
+         
+         if (atpos < 1 || ( dotpos - atpos < 2 )) 
+         {
+            alert("Please enter correct email ID")
+            return false;
+         }
+
+    x = document.forms["myForm"]["Pass"].value;
+    if (x == null || x == "") {
+        alert("Password must be filled out");
+        return false;
+    }
+
+     x=window.confirm("Are u sure u want to submit ?")
+     if (x)
+      window.location="mainhome.php"
+     else 
+      window.location="sign.html"
+
+	
+	
+}
+</script>
+<style>
+html { 
+
+  -webkit-background-size: cover;
+  -moz-background-size: cover;
+  -o-background-size: cover;
+  background-size: cover;
+}
+
+
+div.scroll {
+align: center;
+    background-color:DarkRed;
+	opacity: 0.6;
+font-family: papyrus;
+color: white;
+font-weight:bold;
+    width: 200px;
+    height: 625px;
+
+position:absolute;
+top:0px;
+left:40%;
+padding: 40px;
+
+
+
+}
+
+
+
+#head
+{
+align:center;
+position:fixed;
+width:100%;
+top:0px;
+}
+
+#listmenu
+{
+width:100%;
+position:fixed;
+top:150px;
+z-index:1;
+}
+
+/*Initialize*/
+ul#menu, ul#menu ul.sub-menu {
+    padding:0;
+    margin: 0;
+	
+}
+ul#menu li, ul#menu ul.sub-menu li {
+    list-style-type: none;
+    display: inline-block;
+}
+/*Link Appearance*/
+ul#menu li a, ul#menu li ul.sub-menu li a {
+   text-decoration: none;
+   color:white;
+   font-weight: 900;
+   font-size:200%;
+   text-align:center;
+   
+font-family:broadway;
+
+
+   
+    
+    background: black;
+    padding: 10px;
+    display:inline-block;
+    width: 200px;
+    
+}
+/*Make the parent of sub-menu relative*/
+ul#menu li {
+    position: relative;
+
+}
+/*sub menu*/
+ul#menu li ul.sub-menu {
+    display:none;
+    position: absolute;
+	font-size:50%;
+    top: 60px;
+    left: 0px;
+    width: 100px;
+}
+ul#menu li:hover ul.sub-menu {
+    display:inline-block;
+}
+
+#forms{
+position:absolute;
+top: 40px;
+right: 25%;
+align:centre;
+}
+a:link {
+    color: white;
+}
+a:visited{
+color: white;
+}
+</style>

@@ -40,3 +40,69 @@ function fetch_all_tracks_of_artist() {
     $sql = "SELECT t.TrackId, t.TrackName, t.TrackDuration, ifnull(avg(r.rating),0) as avg_rating from tracks t left outer join Rating r on t.TrackId = r.TrackId where t.ArtistTitle= ? group by t.TrackId";
     return $sql;
 }
+
+function fetch_user_bio_details() {
+    $sql = "SELECT Email as EmailId,UName from user where UName = ?";
+    return $sql;
+}
+
+function fetch_user_followers_count() {
+    $sql = "SELECT count(UName) as followers_count from Followers where UFollowing = ?";
+    return $sql;
+}
+
+function fetch_user_followers() {
+    $sql = "SELECT UName as followers from Followers where UFollowing = ?";
+    return $sql;
+}
+
+function fetch_user_following_count() {
+    $sql = "SELECT count(UFollowing) as following_count from Followers where UName = ?";
+    return $sql;
+}
+
+function fetch_user_following() {
+    $sql = "SELECT UFollowing as following from Followers where UName = ?";
+    return $sql;
+}
+
+function fetch_fav_artists() {
+    $sql = "SELECT ArtistTitle as fav_artists from likes where UName = ? limit 25";
+    return $sql;
+}
+
+function fetch_self_playlists() {
+    $sql = "SELECT PlaylistName as self_playlist from Playlist where UName = ?";
+    return $sql;
+}
+
+function fetch_other_users_playlists() {
+    $sql = "SELECT PlaylistName as users_playlist from Playlist where UName = ? and Is_Private='0'";
+    return $sql;
+}
+
+function fetch_playlistname() {
+    $sql = "SELECT PlaylistName,UName FROM Playlist  WHERE UName= ?";
+    return $sql;
+}
+
+function fetch_playlisttracks() {
+    $sql = "SELECT TrackId FROM Playlist P join PlayTracks PT WHERE UName=? and P.PlaylistId=PT.PlaylistId ";
+    return $sql;
+}
+
+function fetch_searchtracks() {
+    $sql = "select t.TrackName,t.TrackId from tracks t where t.TrackName like '%?%'";
+    return $sql;
+}
+
+function fetch_searchalbums() {
+    $sql = "select t.TrackName,t.TrackId from tracks t where t.TrackName like '%?%'";
+    return $sql;
+}
+
+function fetch_searchplaylists() {
+    $sql = "select t.TrackName,t.TrackId from tracks t where t.TrackName like '%?%'";
+    return $sql;
+}
+
