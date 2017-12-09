@@ -7,7 +7,7 @@
  */
 
 function fetch_artist_bio_details() {
-    $sql = "SELECT ArtistDescription as artist_desc, count(TrackId) as track_count from artists natural join tracks where ArtistTitle = ?";
+    $sql = "SELECT ArtistDescription as artist_desc, count(TrackId) as track_count from artists natural join tracks where ArtistTitle = ? LIMIT 1";
     return $sql;
 }
 
