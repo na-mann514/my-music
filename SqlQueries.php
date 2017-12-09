@@ -56,7 +56,7 @@ function fetch_user_following() {
 }
 
 function fetch_fav_artists() {
-    $sql = "SELECT ArtistTitle as fav_artists from likez where UName = ? limit 25";
+    $sql = "SELECT ArtistTitle as fav_artists from likes where UName = ? limit 25";
     return $sql;
 }
 
