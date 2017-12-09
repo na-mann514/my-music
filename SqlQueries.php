@@ -30,3 +30,13 @@ function fetch_artist_follower_count() {
     $sql = "SELECT count(UName) as follower_count from Followers where UFollowing = ?";
     return $sql;
 }
+
+function check_if_artist_exists() {
+    $sql = "SELECT ArtistTitle from artists where ArtistTitle = ?";
+    return $sql;
+}
+
+function fetch_all_tracks_of_artist() {
+    $sql = "SELECT t.TrackId, t.TrackName, t.TrackDuration, ifnull(avg(r.rating),0) as avg_rating from tracks t left outer join Rating r on t.TrackId = r.TrackId where t.ArtistTitle= ? group by t.TrackId";
+    return $sql;
+}
