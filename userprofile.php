@@ -85,3 +85,51 @@ function fetch_user_profile_details($conn, $username) {
 
     return $user_info;
 }
+<<<<<<< Updated upstream
+
+<html>
+    <head>
+        <link rel="stylesheet" type="text/css" href="css/style.css">
+    </head>
+    <body>
+
+        <div id="page-container">
+            <div id="user-bio">
+                <div id="user-image">
+                    <img title="<?php echo ucwords($user_info['user_bio_details']); ?> image" alt="<?php ucwords($user_info['user_bio_details']) ?>" src="artist-images/download.png">
+                </div>
+
+
+                <div id="user-summary">
+                    <h1>USERNAME: <?php echo ucwords($user_info['user_bio_details']); ?> </h1>
+
+                    <p><?php echo $user_info['followers_count'];?> Followers | <?php echo $user_info['following_count'] ?> Following </p>
+                </div>
+                
+                <div id="user-desc">
+                    <h2>Favourite Artists:</h2>
+                    /*<p id = "user-desc-txt"><?php echo ucwords($user_info['fav_artists']);?></p>*/
+                </div>
+            </div>
+            <div id = "playlists">
+                <h3>PLAYLISTS</h3>
+                <ul id="playlists-headers">
+                    <li class="playlists-cnt">#</li>
+                    <li class="playlists-name">Playlist-Name</li>
+                    
+                </ul>
+                <?php foreach($artist_info['top_songs'] as $i => $arr):?>
+                
+                <ul id ="pay-load">
+                    <li class="playlists-cnt"><?php echo $i+1; ?></li>
+                    <li class="playlists-name"><?php echo ucwords($arr['PlaylistName']); ?></li>
+                 
+                </ul>
+                
+                <?php endforeach;?>
+            </div>
+        </div>Ï
+    </body>
+</html>
+=======
+>>>>>>> Stashed changes

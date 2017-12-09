@@ -30,6 +30,17 @@ function fetch_artist_follower_count() {
     $sql = "SELECT count(UName) as follower_count from Followers where UFollowing = ?";
     return $sql;
 }
+
+function check_if_artist_exists() {
+    $sql = "SELECT ArtistTitle from artists where ArtistTitle = ?";
+    return $sql;
+}
+
+function fetch_all_tracks_of_artist() {
+    $sql = "SELECT t.TrackId, t.TrackName, t.TrackDuration, ifnull(avg(r.rating),0) as avg_rating from tracks t left outer join Rating r on t.TrackId = r.TrackId where t.ArtistTitle= ? group by t.TrackId";
+    return $sql;
+}
+
 function fetch_user_bio_details() {
     $sql = "SELECT Email as EmailId,UName from user where UName = ?";
     return $sql;
@@ -56,7 +67,11 @@ function fetch_user_following() {
 }
 
 function fetch_fav_artists() {
+<<<<<<< Updated upstream
     $sql = "SELECT ArtistTitle as fav_artists from likes where UName = ? limit 25";
+=======
+    $sql = "SELECT ArtistTitle as fav_artists from likez where UName = ? limit 25";
+>>>>>>> Stashed changes
     return $sql;
 }
 
@@ -81,17 +96,29 @@ function fetch_playlisttracks() {
 }
 
 function fetch_searchtracks() {
-    $sql = "select t.TrackName,t.TrackId from tracks t where t.TrackName like '%?%'";
+<<<<<<< Updated upstream
+    $sql = "select t.TrackName,t.TrackId from tracks t where t.TrackName like % ? %";
+    return $sql;
+}
+
+function fetch_searchartists() {
+    $sql = "select ArtistTitle from artists where ArtistTitle like %?%";
+    return $sql;
+}
+
+function fetch_searchsuggestions() {
+    $sql = "select ArtistTitle from artists where ArtistDescription like %?%";
     return $sql;
 }
 
 function fetch_searchalbums() {
-    $sql = "select t.TrackName,t.TrackId from tracks t where t.TrackName like '%?%'";
+    $sql = "select AlbumName from albums where AlbumName like %?%";
     return $sql;
 }
 
 function fetch_searchplaylists() {
-    $sql = "select t.TrackName,t.TrackId from tracks t where t.TrackName like '%?%'";
+    $sql = "select PlaylistName from Playlist where PlaylistName like %?%";
+
     return $sql;
 }
 
