@@ -47,6 +47,8 @@ and open the template in the editor.
 #page-container
 {
     padding-left: 120px;
+    overflow-y: scroll;
+    height: 650px;
 }
 
 .checked
@@ -105,4 +107,16 @@ and open the template in the editor.
     position:relative;
     top:2px;
     left:2px;
+}
+
+.iframe-container
+{
+    left: 0px; 
+    padding-left:120px; 
+    border: 0px none; 
+    height: 370px; 
+    position: fixed; 
+    width: 80%; 
+    overflow: hidden; 
+    bottom: -260px;
 }

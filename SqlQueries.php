@@ -115,3 +115,8 @@ function delete_from_likes() {
     $sql = "DELETE from Likes WHERE ArtistTitle = ? and UName = ?";
     return $sql;
 }
+
+function insert_into_play_history() {
+    $sql = "INSERT INTO PlayHistory values(?, ?, ?, now())";
+    return $sql;
+}
