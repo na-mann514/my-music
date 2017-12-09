@@ -80,7 +80,7 @@ function fetch_artist_details($conn, $artist_title, $username) {
     return $artist_info;
 }
 
-if(isset($_POST['user_play_track'])) {
+if (isset($_POST['user_play_track'])) {
     $track_id = htmlspecialchars($_POST['user_play_track']);
     insert_into_playhistory($conn, $track_id, $artist_title, $username);
 }
@@ -175,9 +175,16 @@ function insert_into_playhistory($conn, $track_id, $artist_title, $username) {
                             <li class="song-header-rate">RATE</li>
                         </ul>
                         <?php foreach ($artist_info['top_songs'] as $i => $arr): ?>
-                            <ul id ="pay-load" class="row">
+                            <ul id ="nav-<?php echo $i; ?>" class="row pay-load">
                                 <li class="song-header-cnt col-sm-1"><?php echo $i + 1; ?></li>
-                                <li class="song-header-title col-sm-4"><?php echo ucwords($arr['TrackName']); ?></li>
+                                <form id="nav-<?php echo $arr['TrackId']; ?>" method="POST" action="#nav-<?php echo $i;?>">
+                                    <input type="hidden" name="user_play_track" id="user_play_track" value="<?php echo $arr['TrackId']; ?>"/>
+                                    <li class="song-header-title col-sm-4">
+                                        <a onclick="document.getElementById('nav-<?php echo $arr['TrackId']; ?>').submit();">
+                                            <?php echo ucwords($arr['TrackName']); ?>
+                                        </a>
+                                    </li>
+                                </form>
                                 <li class="song-header-rating col-sm-1"><?php echo number_format($arr['avg_rating'], 2, '.', ''); ?></li>
                                 <li class="song-header-duration col-sm-1"><?php echo number_format(($arr['TrackDuration'] / 60000), 2, ':', ''); ?></li>
                                 <li>
@@ -208,9 +215,16 @@ function insert_into_playhistory($conn, $track_id, $artist_title, $username) {
                             <li class="song-header-rate">RATE</li>
                         </ul>
                         <?php foreach ($artist_info['all_songs'] as $i => $arr): ?>
-                            <ul id ="pay-load" class="row">
+                            <ul id ="nav-<?php echo $i; ?>" class="row pay-load">
                                 <li class="song-header-cnt col-sm-1"><?php echo $i + 1; ?></li>
-                                <li class="song-header-title col-sm-4"><?php echo ucwords($arr['TrackName']); ?></li>
+                                <form id="nav-<?php echo $arr['TrackId']; ?>" method="POST" action="#nav-<?php echo $i;?>">
+                                    <input type="hidden" name="user_play_track" id="user_play_track" value="<?php echo $arr['TrackId']; ?>"/>
+                                    <li class="song-header-title col-sm-4">
+                                        <a onclick="document.getElementById('nav-<?php echo $arr['TrackId']; ?>').submit();">
+                                            <?php echo ucwords($arr['TrackName']); ?>
+                                        </a>
+                                    </li>
+                                </form>
                                 <li class="song-header-rating col-sm-1"><?php echo number_format($arr['avg_rating'], 2, '.', ''); ?></li>
                                 <li class="song-header-duration col-sm-1"><?php echo number_format(($arr['TrackDuration'] / 60000), 2, ':', ''); ?></li>
                                 <li>
@@ -221,12 +235,6 @@ function insert_into_playhistory($conn, $track_id, $artist_title, $username) {
                                         <input type="radio" id="star2" name="rating" value="2" /><label for="star2" title="Kinda bad">2 stars</label>
                                         <input type="radio" id="star1" name="rating" value="1" /><label for="star1" title="Sucks big time">1 star</label>
                                     </fieldset>
-                                </li>
-                                <li>
-                                    <form method="POST" action="#">
-                                        <input type="hidden" name="user_play_track" id="user_play_track" value="<?php echo $arr['TrackId']; ?>"/>
-                                        <input type="submit" value="Play"/>
-                                    </form>
                                 </li>
                             </ul>
 
