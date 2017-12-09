@@ -106,3 +106,12 @@ function fetch_searchplaylists() {
     return $sql;
 }
 
+function insert_into_likes() {
+    $sql = "INSERT INTO `Likes` (ArtistTitle, UName, ltime) values(?, ?, now())";
+    return $sql;
+}
+
+function delete_from_likes() {
+    $sql = "DELETE from Likes WHERE ArtistTitle = ? and UName = ?";
+    return $sql;
+}
