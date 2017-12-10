@@ -26,11 +26,6 @@ function fetch_artist_likes_count() {
     return $sql;
 }
 
-function fetch_artist_follower_count() {
-    $sql = "SELECT count(UName) as follower_count from Followers where UFollowing = ?";
-    return $sql;
-}
-
 function check_if_artist_exists() {
     $sql = "SELECT ArtistTitle from artists where ArtistTitle = ?";
     return $sql;
@@ -118,5 +113,30 @@ function delete_from_likes() {
 
 function insert_into_play_history() {
     $sql = "INSERT INTO PlayHistory values(?, ?, ?, now())";
+    return $sql;
+}
+
+function fetch_user_play_history() {
+    $sql = "SELECT t.TrackId, t.TrackName, t.ArtistTitle, t.TrackDuration from tracks t join PlayHistory p on t.TrackId = p.TrackId where UName = :uname order by PTime desc LIMIT :offset , :max_limit";
+    return $sql;
+}
+
+function fetch_best_songs() {
+    $sql = "SELECT t.TrackId, t.TrackName, t.ArtistTitle, t.TrackDuration, avg(rating) as avg_rating from tracks t join Rating r on r.TrackId = t.TrackId group by t.TrackId order by avg_rating desc LIMIT :offset , :max_limit";
+    return $sql;
+}
+
+function fetch_songs_by_artist_you_like() {
+    $sql = "SELECT x.TrackId, x.TrackName, x.ArtistTitle, x.TrackDuration, ifnull(avg(r.Rating),0) as avg_rating FROM (SELECT t.TrackId, t.TrackName, t.ArtistTitle, t.TrackDuration from tracks t join Likes l on (l.ArtistTitle = t.ArtistTitle) where l.UName = :uname) as x left outer join Rating r on r.TrackId = x.TrackId group by x.TrackId order by avg_rating desc limit :offset , :max_limit";
+    return $sql;
+}
+
+function fetch_recent_albums() {
+    $sql = "select AlbumId, AlbumName from albums order by AlbumReleaseDate desc limit :offset , :max_limit";
+    return $sql;
+}
+
+function fetch_playlists_of_users_you_follow() {
+    $sql = "select PlaylistId, PlaylistName from Playlist p join Followers f on p.UName = f.UFollowing  where f.UName = :uname and Is_Private = 0 limit :offset , :max_limit";
     return $sql;
 }

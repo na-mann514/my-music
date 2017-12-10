@@ -38,6 +38,50 @@ and open the template in the editor.
     font-weight: 900;
 }
 
+#recent-albums-headers li
+{
+    display: inline;
+    list-style-type: none;
+    //padding-left: 30px;
+    font-weight: 900;
+    display: block;
+    overflow: auto;
+    //overflow-wrap: normal;
+    //overflow-wrap: break-word;
+    
+}
+
+#fav-artist-songs-headers li
+{
+    display: inline;
+    list-style-type: none;
+    //padding-left: 30px;
+    font-weight: 900;
+    display: block;
+    overflow: auto;
+}
+
+#play-history-songs-headers li
+{
+    display: inline;
+    list-style-type: none;
+    //padding-left: 30px;
+    font-weight: 900;
+    display: block;
+    overflow: auto;
+}
+
+#playlist-headers li
+{
+   display: inline;
+    list-style-type: none;
+    //padding-left: 30px;
+    font-weight: 900;
+    display: block;
+    overflow: auto; 
+}
+
+
 .pay-load li
 {
     display: inline;
@@ -49,64 +93,6 @@ and open the template in the editor.
     padding-left: 120px;
     overflow-y: scroll;
     height: 650px;
-}
-
-.checked
-{
-    color:blue;
-}
-
-.rating {
-    float:left;
-}
-
-.rating:not(:checked) > input {
-    position:absolute;
-    top:-9999px;
-    clip:rect(0,0,0,0);
-}
-
-.rating:not(:checked) > label {
-    float:right;
-    width:1em;
-    padding:0 .1em;
-    overflow:hidden;
-    white-space:nowrap;
-    cursor:pointer;
-    font-size:200%;
-    line-height:1.2;
-    color:#ddd;
-    text-shadow:1px 1px #bbb, 2px 2px #666, .1em .1em .2em rgba(0,0,0,.5);
-}
-
-.rating:not(:checked) > label:before {
-    content: '★ ';
-}
-
-.rating > input:checked ~ label {
-    color: blue;
-    text-shadow:1px 1px #c60, 2px 2px #940, .1em .1em .2em rgba(0,0,0,.5);
-}
-
-.rating:not(:checked) > label:hover,
-.rating:not(:checked) > label:hover ~ label {
-    color: blue;
-    text-shadow:1px 1px goldenrod, 2px 2px #B57340, .1em .1em .2em rgba(0,0,0,.5);
-}
-
-.rating > input:checked + label:hover,
-.rating > input:checked + label:hover ~ label,
-.rating > input:checked ~ label:hover,
-.rating > input:checked ~ label:hover ~ label,
-.rating > label:hover ~ input:checked ~ label {
-    color: blue;
-    text-shadow:1px 1px goldenrod, 2px 2px #B57340, .1em .1em .2em rgba(0,0,0,.5);
-}
-
-.rating > label:active {
-    position:relative;
-    top:2px;
-    left:2px;
 }
 
 .iframe-container
