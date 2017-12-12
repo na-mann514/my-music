@@ -117,7 +117,8 @@ function insert_into_play_history() {
 }
 
 function fetch_user_play_history() {
-    $sql = "SELECT t.TrackId, t.TrackName, t.ArtistTitle, t.TrackDuration from tracks t join PlayHistory p on t.TrackId = p.TrackId where UName = :uname order by PTime desc LIMIT :offset , :max_limit";
+    $sql = "SELECT t.TrackId, t.TrackName, t.ArtistTitle, t.TrackDuration, ifnull(avg(r.rating),0) as avg_rating from tracks t join PlayHistory p on t.TrackId = p.TrackId left outer join Rating r on r.TrackId = p.TrackId  where p.UName = :uname group by p.PTime order by PTime desc LIMIT :offset , :max_limit";
+    //$sql = "SELECT t.TrackId, t.TrackName, t.ArtistTitle, t.TrackDuration, ifnull(avg(r.rating),0) as avg_rating from tracks t join PlayHistory p on t.TrackId = p.TrackId left outer join Rating r on r.TrackId = p.TrackId  where UName = :uname order by PTime desc LIMIT :offset , :max_limit";
     return $sql;
 }
 
@@ -138,5 +139,20 @@ function fetch_recent_albums() {
 
 function fetch_playlists_of_users_you_follow() {
     $sql = "select PlaylistId, PlaylistName from Playlist p join Followers f on p.UName = f.UFollowing  where f.UName = :uname and Is_Private = 0 limit :offset , :max_limit";
+    return $sql;
+}
+
+function fetch_ratings_for_track() {
+    $sql = "select TrackId, Rating from Rating where TrackId IN :all_tracks and UName = 'dj'";
+    return $sql;
+}
+
+function insert_into_ratings_sql() {
+    $sql = "insert into Rating values(?, ?, ?, now())";
+    return $sql;
+}
+
+function insert_or_update_into_ratings_sql() {
+    $sql = "insert into Rating values(?, ?, ?, now()) ON DUPLICATE KEY UPDATE Rating = ?, RTime = now()";
     return $sql;
 }

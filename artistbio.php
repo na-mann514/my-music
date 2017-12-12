@@ -16,7 +16,16 @@ if (isset($_GET['aname']))
 //$username = $_SESSION['username'];
 $username = 'dj';
 
+if(isset($_POST['track-id-rating']) && isset($_POST['rating-value'])) {
+    $rating_given = $_POST['rating-value'];
+    $track_rated = $_POST['track-id-rating'];
+    echo $rating_given;
+    echo $track_rated;
+    insert_into_ratings($conn, $username, $rating_given, $track_rated);
+}
+
 $artist_info = fetch_artist_details($conn, $artist_title, $username);
+
 
 function fetch_artist_details($conn, $artist_title, $username) {
     $artist_info['artist_title'] = $artist_title;
@@ -83,6 +92,12 @@ function insert_into_playhistory($conn, $track_id, $artist_title, $username) {
     $sql = insert_into_play_history();
     $stmt = $conn->prepare($sql);
     $stmt->execute([$username, $track_id, $artist_title]);
+}
+
+function insert_into_ratings($conn, $username, $rating_given, $track_rated) {
+    $sql = insert_or_update_into_ratings_sql();
+    $stmt = $conn->prepare($sql);
+    $stmt->execute([$track_rated, $username, $rating_given, $rating_given]);
 }
 ?>
 <!DOCTYPE html>
@@ -222,22 +237,15 @@ function insert_into_playhistory($conn, $track_id, $artist_title, $username) {
                                 <li class="song-header-rating col-sm-1"><?php echo number_format($arr['avg_rating'], 2, '.', ''); ?></li>
                                 <li class="song-header-duration col-sm-1"><?php echo number_format(($arr['TrackDuration'] / 60000), 2, ':', ''); ?></li>
                                 <form id="rating-<?php echo $arr['TrackId']; ?>" method="POST" action="#nav-<?php echo $i; ?>">
+                                    <input type="hidden" value="<?php echo $arr['TrackId']; ?>" id="track-id-rating" name="track-id-rating"/>
                                     <li>
-                                        <a onclick="document.getElementById('rating-<?php echo $arr['TrackId'];?>').submit();">
-                                            <input type="radio" value="1"/>
-                                        </a>
-                                        <a onclick="document.getElementById('rating-<?php echo $arr['TrackId'];?>').submit();">
-                                            <input type="radio" value="2"/>
-                                        </a>
-                                        <a onclick="document.getElementById('rating-<?php echo $arr['TrackId'];?>').submit();">
-                                            <input type="radio" value="3"/>
-                                        </a>
-                                        <a onclick="document.getElementById('rating-<?php echo $arr['TrackId'];?>').submit();">
-                                            <input type="radio" value="4"/>
-                                        </a>
-                                        <a onclick="document.getElementById('rating-<?php echo $arr['TrackId'];?>').submit();">
-                                            <input type="radio" value="5"/>
-                                        </a>  
+                                        <select id="rating-value" name="rating-value" onchange="document.getElementById('rating-<?php echo $arr['TrackId']?>').submit();">
+                                            <option value="1" >1</option>
+                                            <option value="2" >2</option>
+                                            <option value="3" >3</option>
+                                            <option value="4" >4</option>
+                                            <option value="5" >5</option>
+                                        </select>
                                     </li>
                                 </form>
                             </ul>
