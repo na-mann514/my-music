@@ -16,7 +16,16 @@ if (isset($_GET['aname']))
 //$username = $_SESSION['username'];
 $username = 'dj';
 
+if(isset($_POST['track-id-rating']) && isset($_POST['rating-value'])) {
+    $rating_given = $_POST['rating-value'];
+    $track_rated = $_POST['track-id-rating'];
+    echo $rating_given;
+    echo $track_rated;
+    insert_into_ratings($conn, $username, $rating_given, $track_rated);
+}
+
 $artist_info = fetch_artist_details($conn, $artist_title, $username);
+
 
 function fetch_artist_details($conn, $artist_title, $username) {
     $artist_info['artist_title'] = $artist_title;
@@ -66,13 +75,6 @@ function fetch_artist_details($conn, $artist_title, $username) {
         $stmt->execute([$artist_title]);
         $rows = $stmt->fetch(PDO::FETCH_ASSOC);
         $artist_info['like_count'] = $rows['like_count'];
-
-
-        $sql = fetch_artist_follower_count();
-        $stmt = $conn->prepare($sql);
-        $stmt->execute([$artist_title]);
-        $rows = $stmt->fetch(PDO::FETCH_ASSOC);
-        $artist_info['follower_count'] = $rows['follower_count'];
     }
     else {
         $artist_info['error']['message'] = "No such Artist found!";
@@ -91,6 +93,12 @@ function insert_into_playhistory($conn, $track_id, $artist_title, $username) {
     $stmt = $conn->prepare($sql);
     $stmt->execute([$username, $track_id, $artist_title]);
 }
+
+function insert_into_ratings($conn, $username, $rating_given, $track_rated) {
+    $sql = insert_or_update_into_ratings_sql();
+    $stmt = $conn->prepare($sql);
+    $stmt->execute([$track_rated, $username, $rating_given, $rating_given]);
+}
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -101,8 +109,9 @@ function insert_into_playhistory($conn, $track_id, $artist_title, $username) {
         <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
         <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.6/js/bootstrap.min.js" integrity="sha384-vBWWzlZJ8ea9aCX4pEW3rVHjgjt7zpkNpZk+02D9phzyeVkE+jo0ieGizqPLForn" crossorigin="anonymous"></script>
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+        <link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css">
     </head>
-    <body><?php require_once 'header.html'; ?>
+    <body>
 
         <div id="page-container">
 
@@ -118,14 +127,14 @@ function insert_into_playhistory($conn, $track_id, $artist_title, $username) {
                 <!-- Displaying Artist Info -->
                 <div id="artist-bio" class="row">
                     <div id="artist-image" class="col-sm-5">
-                        <img title="<?php echo ucwords($artist_info['artist_title']); ?> image" alt="<?php ucwords($artist_info['artist_title']) ?>" src="artist-images/download.png">
+                        <img class="w3-card" title="<?php echo ucwords($artist_info['artist_title']); ?> image" alt="<?php ucwords($artist_info['artist_title']) ?>" src="artist-images/download.png">
                     </div>
 
                     <div id="summary-and-bio" class="col-sm-7">
                         <!-- Displaying Artist Summary -->
                         <div id="artist-summary">
                             <h1><?php echo ucwords($artist_info['artist_title']); ?> Songs</h1>
-                            <p><?php echo $artist_info['track_count']; ?> Tracks | <?php echo $artist_info['like_count'] ?> Likes | <?php echo $artist_info['follower_count'] ?> Followers</p>
+                            <p><?php echo $artist_info['track_count']; ?> Tracks | <?php echo $artist_info['like_count'] ?> Likes</p>
                         </div>
                         <!-- Displaying Artist Summary -->
 
@@ -177,7 +186,7 @@ function insert_into_playhistory($conn, $track_id, $artist_title, $username) {
                         <?php foreach ($artist_info['top_songs'] as $i => $arr): ?>
                             <ul id ="nav-<?php echo $i; ?>" class="row pay-load">
                                 <li class="song-header-cnt col-sm-1"><?php echo $i + 1; ?></li>
-                                <form id="nav-<?php echo $arr['TrackId']; ?>" method="POST" action="#nav-<?php echo $i;?>">
+                                <form id="nav-<?php echo $arr['TrackId']; ?>" method="POST" action="#nav-<?php echo $i; ?>">
                                     <input type="hidden" name="user_play_track" id="user_play_track" value="<?php echo $arr['TrackId']; ?>"/>
                                     <li class="song-header-title col-sm-4">
                                         <a onclick="document.getElementById('nav-<?php echo $arr['TrackId']; ?>').submit();">
@@ -217,7 +226,7 @@ function insert_into_playhistory($conn, $track_id, $artist_title, $username) {
                         <?php foreach ($artist_info['all_songs'] as $i => $arr): ?>
                             <ul id ="nav-<?php echo $i; ?>" class="row pay-load">
                                 <li class="song-header-cnt col-sm-1"><?php echo $i + 1; ?></li>
-                                <form id="nav-<?php echo $arr['TrackId']; ?>" method="POST" action="#nav-<?php echo $i;?>">
+                                <form id="nav-<?php echo $arr['TrackId']; ?>" method="POST" action="#nav-<?php echo $i; ?>">
                                     <input type="hidden" name="user_play_track" id="user_play_track" value="<?php echo $arr['TrackId']; ?>"/>
                                     <li class="song-header-title col-sm-4">
                                         <a onclick="document.getElementById('nav-<?php echo $arr['TrackId']; ?>').submit();">
@@ -227,15 +236,18 @@ function insert_into_playhistory($conn, $track_id, $artist_title, $username) {
                                 </form>
                                 <li class="song-header-rating col-sm-1"><?php echo number_format($arr['avg_rating'], 2, '.', ''); ?></li>
                                 <li class="song-header-duration col-sm-1"><?php echo number_format(($arr['TrackDuration'] / 60000), 2, ':', ''); ?></li>
-                                <li>
-                                    <fieldset class="rating">
-                                        <input type="radio" id="star5" name="rating" value="5" /><label for="star5" title="Rocks!">5 stars</label>
-                                        <input type="radio" id="star4" name="rating" value="4" /><label for="star4" title="Pretty good">4 stars</label>
-                                        <input type="radio" id="star3" name="rating" value="3" /><label for="star3" title="Meh">3 stars</label>
-                                        <input type="radio" id="star2" name="rating" value="2" /><label for="star2" title="Kinda bad">2 stars</label>
-                                        <input type="radio" id="star1" name="rating" value="1" /><label for="star1" title="Sucks big time">1 star</label>
-                                    </fieldset>
-                                </li>
+                                <form id="rating-<?php echo $arr['TrackId']; ?>" method="POST" action="#nav-<?php echo $i; ?>">
+                                    <input type="hidden" value="<?php echo $arr['TrackId']; ?>" id="track-id-rating" name="track-id-rating"/>
+                                    <li>
+                                        <select id="rating-value" name="rating-value" onchange="document.getElementById('rating-<?php echo $arr['TrackId']?>').submit();">
+                                            <option value="1" >1</option>
+                                            <option value="2" >2</option>
+                                            <option value="3" >3</option>
+                                            <option value="4" >4</option>
+                                            <option value="5" >5</option>
+                                        </select>
+                                    </li>
+                                </form>
                             </ul>
 
                         <?php endforeach; ?>
@@ -247,7 +259,6 @@ function insert_into_playhistory($conn, $track_id, $artist_title, $username) {
         </div>
         <div class="iframe-container">
             <div style="overflow: hidden;"></div>
-
             <iframe src='https://open.spotify.com/embed/track/<?php echo $_POST['user_play_track']; ?>' width='100%' height='100' frameborder='0' allowtransparency='true'></iframe>
         </div>
     </body>
