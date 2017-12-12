@@ -14,37 +14,44 @@ $conn = $db_conn->getDBConnection();
 
 
 //$artist_title = htmlspecialchars($_GET['aname']);
-if (isset($_GET['uname']))
+
 $username1 = htmlspecialchars($_GET['uname']);
 $username=$_SESSION['username'];
-//$username=$_SESSION['username'];
-$user_info = fetch_user_profile_details($conn, $username1);
+//$username-'dj';
 
-function fetch_user_profile_details($conn, $username1) {
+$user_info = fetch_user_profile_details($conn, $username);
+
+function fetch_user_profile_details($conn, $username) {
     //$user_info = array();
-    $user_info['username']=$username1;
+    $user_info['username']=$username;
     $conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 
     $sql = fetch_user_bio_details();
     $stmt = $conn->prepare($sql);
-    $stmt->execute([$username1]);
+    $stmt->execute([$username]);
     $rows = $stmt->fetch(PDO::FETCH_ASSOC);
     $user_info['UName'] = $rows['UName'];
     $user_info['Email'] = $rows['Email'];
 
-
-    $sql = fetch_user_followers_count();
+    $sql = fetch_user_following();
     $stmt = $conn->prepare($sql);
-    $stmt->execute([$username1]);
-    $rows = $stmt->fetch(PDO::FETCH_ASSOC);
-    $user_info['followers_count'] = $rows['followers_count'];
+    $stmt->execute([$username]);
+    $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    $user_info['following'] = $rows;
 
 
     $sql = fetch_user_followers();
     $stmt = $conn->prepare($sql);
-    $stmt->execute([$username1]);
+    $stmt->execute([$username]);
     $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
     $user_info['followers'] = $rows;
+
+    $sql = fetch_user_followers_count();
+    $stmt = $conn->prepare($sql);
+    $stmt->execute([$username]);
+    $rows = $stmt->fetch(PDO::FETCH_ASSOC);
+    $user_info['followers_count'] = $rows['followers_count'];
+
 
 
     $sql = fetch_user_following_count();
@@ -53,44 +60,6 @@ function fetch_user_profile_details($conn, $username1) {
     $rows = $stmt->fetch(PDO::FETCH_ASSOC);
     $user_info['following_count'] = $rows['following_count'];
 
-
-    $sql = fetch_user_following();
-    $stmt = $conn->prepare($sql);
-    $stmt->execute([$username1]);
-    $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
-    $user_info['following'] = $rows;
-
-     $sql = fetch_fav_artists();
-    $stmt = $conn->prepare($sql);
-    $stmt->execute([$username1]);
-    $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
-    $user_info['fav_artists'] = $rows;
-
-     $sql = fetch_self_playlists();
-    $stmt = $conn->prepare($sql);
-    $stmt->execute([$username1]);
-    $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
-    $user_info['self_playlist'] = $rows;
-
-    $sql = fetch_other_users_playlists();
-    $stmt = $conn->prepare($sql);
-    $stmt->execute([$username1]);
-    $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
-    $user_info['users_playlist'] = $rows;
-
-            $sql = does_user_follow_user1();
-            $stmt = $conn->prepare($sql);
-            $stmt->execute([$username, $username1]);
-            $rows = $stmt->fetch(PDO::FETCH_ASSOC);
-            $user_info['does_follow'] = $rows['rec_count'] > 0 ? TRUE : FALSE;
-
-
-        $sql = fetch_user_followers_count();
-        $stmt = $conn->prepare($sql);
-        $stmt->execute([$username1]);
-        $rows = $stmt->fetch(PDO::FETCH_ASSOC);
-        $user_info['follower_count'] = $rows['follower_count'];
-    
     return $user_info;
 }
 ?>
@@ -104,9 +73,9 @@ function fetch_user_profile_details($conn, $username1) {
         <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.6/js/bootstrap.min.js" integrity="sha384-vBWWzlZJ8ea9aCX4pEW3rVHjgjt7zpkNpZk+02D9phzyeVkE+jo0ieGizqPLForn" crossorigin="anonymous"></script>
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
     </head>
-    <body>
-<?php require_once 'header.html'; ?>
-        <div id="user-pg-container">
+    <body><?php require_once 'header.html'; ?>
+
+        <div id="page-container">
             
             <?php if (isset($user_info['error'])): ?>
                 <div class="alert alert-danger alert-dismissable">
@@ -114,7 +83,7 @@ function fetch_user_profile_details($conn, $username1) {
                     <?php echo $user_info['error']['message']; ?>
                 </div>
             <?php endif; ?>
-
+            
             <?php if (!isset($user_info['error'])): ?>
                 
                 <!-- Displaying Artist Info -->
@@ -129,11 +98,10 @@ function fetch_user_profile_details($conn, $username1) {
                             <h1><?php echo ucwords($user_info['username']); ?> </h1>
                             <p> <?php echo $user_info['Email'] ?> </p>
                             <p> <a href="following.php"><?php echo $user_info['following_count'] ?> Following</a> | <a href="followers.php"><?php echo $user_info['followers_count'] ?> Followers</a></p>
-                            <p> <a href="create_playlist.php"> Create Playlist </a> </p>
                         </div>
                     
                         
-                        <div id="" class="row">
+                       <div id="" class="row">
                             <div class="col-sm-3">
                                 <form action="FollowUnfollow.php" method="post" class="artist-like-form">
                                     <input type="hidden" value="<?php echo $username1?>" id="username1" name="username1"/>
@@ -157,24 +125,26 @@ function fetch_user_profile_details($conn, $username1) {
                                 </div>
                         <?php endif;?> 
                     </div>
-                </div>   
+                </div>  
                 
         
                 
-                <?php if($user_info['fav_artists']):?>
+                <?php if($user_info['followers']):?>
                 <div id = "top-songs">
-                    <h3>Favourite Artists:</h3>
+                    <h3>You Follow:</h3>
                     <ul id="top-songs-headers" class="row">
                         <li class="song-header-cnt col-sm-2">#</li>
-                        <li class="song-header-title col-sm-10">ARTIST NAME</li>
+                        <li class="song-header-title col-sm-10">FOLLOWING</li>
                        
                         
                     </ul>
-                    <?php foreach ($user_info['fav_artists'] as $i => $arr): ?>
+                    <?php foreach ($user_info['following'] as $i => $arr): ?>
                         <ul id ="pay-load">
                             <li class="song-header-cnt col-sm-2"><?php echo $i + 1; ?></li>
-                             <?php $temp1= ucwords($arr['fav_artists']); ?>
-                            <li class="song-header-title col-sm-10"><a href="artistbio.php?aname=<?php echo $temp1; ?>"> <?php echo ucwords($arr['fav_artists']); ?></a></li>
+                            <?php $temp2= ucwords($arr['following']); ?>
+                         
+                            <li class="song-header-title col-sm-10"><a href="userprofile.php?uname=<?php echo $temp2; ?>"> <?php echo ucwords($arr['following']); ?></a></li>
+                            
                               
                         </ul>
 
@@ -183,26 +153,7 @@ function fetch_user_profile_details($conn, $username1) {
                 <?php endif;?>
             </br></br></br>
 
-                <?php if($user_info['self_playlist']):?>
-                <div id = "top-songs">
-                    <h3>Your Playlists:</h3>
-                    <ul id="top-songs-headers" class="row">
-                        <li class="song-header-cnt col-sm-2">#</li>
-                        <li class="song-header-title col-sm-10">PLAYLIST NAME</li>
-                       
-                        
-                    </ul>
-                    <?php foreach ($user_info['self_playlist'] as $i => $arr): ?>
-                        <ul id ="pay-load">
-                            <li class="song-header-cnt col-sm-2"><?php echo $i + 1; ?></li>
-                            <li class="song-header-title col-sm-10"><a href="playlist.php"> <?php echo ucwords($arr['self_playlist']); ?></a></li>
-                              
-                        </ul>
-
-                    <?php endforeach; ?>
-                </div>
-                <?php endif;?>
-                <!-- Displaying Top songs -->
+            
                
                 
             <?php endif; ?> 

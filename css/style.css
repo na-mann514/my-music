@@ -13,64 +13,123 @@ and open the template in the editor.
     width: 150px;
     margin: 0 10px 0 0;
     position: relative;
-    padding-top: 160px;
+    padding-top: 100px;
 }
 #artist-image, #artist-summary
 {
     display: inline;
 }
-
-#artist-summary
-{
-    display: block;
-    padding-right: 300px;
-    width: calc(100% - 380px);
+#section1 {
+    
+    float:center;
+    padding:50px; 
+    font-weight: 900;
+    font-size:200%;
+     
 }
-
+#summary-and-bio
+{
+    position: relative;
+    padding-top: 100px;
+    padding-left: 120px;
+}
+#success-msg
+{
+    padding-top: 5px;
+}
 #top-songs-headers li
 {
     display: inline;
     list-style-type: none;
-    padding-right: 20px;
+    //padding-left: 30px;
     font-weight: 900;
 }
 
-#pay-load li
+.pay-load li
 {
     display: inline;
     list-style-type: none;
-    padding-right: 20px;
 }
 
-#artist-desc-txt
+#page-container
 {
-    padding-left: 4.5%;
-    float: left;
-    width: 100%;
+    padding-left: 120px;
+    overflow-y: scroll;
+    height: 650px;
 }
 
-.song-header-title
+.checked
 {
-    width: 37%;
-    float: left;
+    color:blue;
 }
 
-.song-header-cnt
-{
-    width: 11.5%;
-    padding-left: 1.5%;
-    float: left;
+.rating {
+    float:left;
 }
 
-.song-header-rating
-{
-    width: 30%;
-    float: left;
+.rating:not(:checked) > input {
+    position:absolute;
+    top:-9999px;
+    clip:rect(0,0,0,0);
 }
 
-.song-header-duration
+.rating:not(:checked) > label {
+    float:right;
+    width:1em;
+    padding:0 .1em;
+    overflow:hidden;
+    white-space:nowrap;
+    cursor:pointer;
+    font-size:200%;
+    line-height:1.2;
+    color:#ddd;
+    text-shadow:1px 1px #bbb, 2px 2px #666, .1em .1em .2em rgba(0,0,0,.5);
+}
+
+.rating:not(:checked) > label:before {
+    content: '★ ';
+}
+
+.rating > input:checked ~ label {
+    color: blue;
+    text-shadow:1px 1px #c60, 2px 2px #940, .1em .1em .2em rgba(0,0,0,.5);
+}
+
+.rating:not(:checked) > label:hover,
+.rating:not(:checked) > label:hover ~ label {
+    color: blue;
+    text-shadow:1px 1px goldenrod, 2px 2px #B57340, .1em .1em .2em rgba(0,0,0,.5);
+}
+
+.rating > input:checked + label:hover,
+.rating > input:checked + label:hover ~ label,
+.rating > input:checked ~ label:hover,
+.rating > input:checked ~ label:hover ~ label,
+.rating > label:hover ~ input:checked ~ label {
+    color: blue;
+    text-shadow:1px 1px goldenrod, 2px 2px #B57340, .1em .1em .2em rgba(0,0,0,.5);
+}
+
+.rating > label:active {
+    position:relative;
+    top:2px;
+    left:2px;
+}
+
+.iframe-container
 {
-    position: relative;
-    float: left;
-    height: inherit;
+    left: 0px; 
+    padding-left:120px; 
+    border: 0px none; 
+    height: 370px; 
+    position: fixed; 
+    width: 80%; 
+    overflow: hidden; 
+    bottom: -260px;
+}
+
+#user-pg-container
+{
+    padding-left: 120px;
+    overflow-y: scroll;
 }

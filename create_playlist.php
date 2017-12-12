@@ -18,16 +18,16 @@ if (isset($_GET['uname']))
 $username1 = htmlspecialchars($_GET['uname']);
 $username=$_SESSION['username'];
 //$username=$_SESSION['username'];
-$user_info = fetch_user_profile_details($conn, $username1);
+$user_info = fetch_user_profile_details($conn, $username);
 
-function fetch_user_profile_details($conn, $username1) {
+function fetch_user_profile_details($conn, $username) {
     //$user_info = array();
-    $user_info['username']=$username1;
+    $user_info['username']=$username;
     $conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 
     $sql = fetch_user_bio_details();
     $stmt = $conn->prepare($sql);
-    $stmt->execute([$username1]);
+    $stmt->execute([$username]);
     $rows = $stmt->fetch(PDO::FETCH_ASSOC);
     $user_info['UName'] = $rows['UName'];
     $user_info['Email'] = $rows['Email'];
@@ -35,14 +35,14 @@ function fetch_user_profile_details($conn, $username1) {
 
     $sql = fetch_user_followers_count();
     $stmt = $conn->prepare($sql);
-    $stmt->execute([$username1]);
+    $stmt->execute([$username]);
     $rows = $stmt->fetch(PDO::FETCH_ASSOC);
     $user_info['followers_count'] = $rows['followers_count'];
 
 
     $sql = fetch_user_followers();
     $stmt = $conn->prepare($sql);
-    $stmt->execute([$username1]);
+    $stmt->execute([$username]);
     $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
     $user_info['followers'] = $rows;
 
@@ -56,25 +56,25 @@ function fetch_user_profile_details($conn, $username1) {
 
     $sql = fetch_user_following();
     $stmt = $conn->prepare($sql);
-    $stmt->execute([$username1]);
+    $stmt->execute([$username]);
     $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
     $user_info['following'] = $rows;
 
      $sql = fetch_fav_artists();
     $stmt = $conn->prepare($sql);
-    $stmt->execute([$username1]);
+    $stmt->execute([$username]);
     $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
     $user_info['fav_artists'] = $rows;
 
      $sql = fetch_self_playlists();
     $stmt = $conn->prepare($sql);
-    $stmt->execute([$username1]);
+    $stmt->execute([$username]);
     $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
     $user_info['self_playlist'] = $rows;
 
     $sql = fetch_other_users_playlists();
     $stmt = $conn->prepare($sql);
-    $stmt->execute([$username1]);
+    $stmt->execute([$username]);
     $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
     $user_info['users_playlist'] = $rows;
 
@@ -127,9 +127,12 @@ function fetch_user_profile_details($conn, $username1) {
                    
                         <div id="artist-summary">
                             <h1><?php echo ucwords($user_info['username']); ?> </h1>
-                            <p> <?php echo $user_info['Email'] ?> </p>
+                            <p> <?php echo $user_info['Email'] ?> 
+                            
+
+                            </p>
                             <p> <a href="following.php"><?php echo $user_info['following_count'] ?> Following</a> | <a href="followers.php"><?php echo $user_info['followers_count'] ?> Followers</a></p>
-                            <p> <a href="create_playlist.php"> Create Playlist </a> </p>
+                            <p> <a href="index.html"> Create Playlist </a> </p>
                         </div>
                     
                         
@@ -158,6 +161,8 @@ function fetch_user_profile_details($conn, $username1) {
                         <?php endif;?> 
                     </div>
                 </div>   
+
+
                 
         
                 
@@ -209,3 +214,5 @@ function fetch_user_profile_details($conn, $username1) {
         </div>
     </body>
 </html>
+
+

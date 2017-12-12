@@ -1,7 +1,7 @@
 <!doctype html>
  <title>SIGN UP</title>
 <head>
-//<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1">
 </head>
 <BODY>
 
@@ -10,7 +10,7 @@
 <div class="scroll">
 <form name="myForm" action="insert_query.php" onsubmit="return validateForm()" method="post">
 User name:<br>
-<input type="text" name="UName" id="UName">
+<input type="text" name="uname" id="uname">
 <br>
 <br>
 
@@ -30,7 +30,7 @@ City:<br>
 <br>
 
 Password:<br>
-<input type="password" name="Pass" id="Pass">
+<input type="password" name="pass" id="pass">
 <br>
 <br>
 <br><br>
@@ -52,7 +52,7 @@ Password:<br>
   <script>
   
   function validateForm() {
-    var x = document.forms["myForm"]["UName"].value;
+    var x = document.forms["myForm"]["uname"].value;
     if (x == null || x == "") {
         alert("User Name must be filled out");
         return false;
@@ -78,17 +78,12 @@ Password:<br>
             return false;
          }
 
-    x = document.forms["myForm"]["Pass"].value;
+    x = document.forms["myForm"]["pass"].value;
     if (x == null || x == "") {
         alert("Password must be filled out");
         return false;
     }
 
-     x=window.confirm("Are u sure u want to submit ?")
-     if (x)
-      window.location="mainhome.php"
-     else 
-      window.location="sign.html"
 
 	
 	

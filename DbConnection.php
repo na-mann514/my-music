@@ -27,12 +27,6 @@ Class DBConnection {
             if (self::$connection == false) {
                 return mysqli_connect_error();
             }
-<<<<<<< Updated upstream
-=======
-            else {
-                echo "Connected successfully";
-            }
->>>>>>> Stashed changes
         }
 
         return self::$connection;

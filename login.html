@@ -1,7 +1,7 @@
 <html>
 <head>
 <title>
-review
+SIGN IN
 </title>
 <style>
 t {font-family:broadway}
@@ -10,51 +10,52 @@ t {font-family:broadway}
 <body style="background-color: #FFFFFF">
 <div id="header">
 </div>
-<br>
-<br>
+<div id="section1" align="left">
+<img src="background.png" alt="HTML5 Icon">
+</div>
 <center>
 <div id="nav"> 
 <form name="review" action="lo.php" onsubmit="return validateForm()" method="post">
 	
-        <br />
-    <center><legend><t><h1>LOGIN</h1><t></legend></center>
-	
-	<br />
-    <label for="email"><t>USERNAME</t></label>
-    <input type="text" name="UName" id="UName" />
-    <br />
-	<br />
-	<br />
-    <label for="pass"><t>PASSWORD</t></label>
-    <input type="password" name="Pass" id="Pass" />
-   <br />
-	
-	<br />
-	<br />
+        
+    <center><legend><t><h2> Sign in </h2><t></legend></center>
+      <center><legend><t><h2> </h2><t></legend></center>
+        <center><legend><t><h2> </h2><t></legend></center>
+    <center><legend><t><h4>Enter credentials of your MY MUSIC account</h4><t></legend></center>
+    <br />  
+	<br /> 
+    <label for="email"><t>Username: </t></label>
+    <input placeholder="Enter your username" type="text" name="uname" id="uname" />
+  <br />  <br />
+    <label for="pass"><t>Password: </t></label>
+    <input placeholder="Enter your password" type="password" name="pass" id="pass" />
+	<br /> <br />
     <t><input type="submit" name="submit" value="Submit" /></t>
     <input type="reset" value="Clear" />
-	<br />
-	<br />
+	<br /> <br /> <br /> <br /> 
   </p>
-  <h2 style="font-family:broadway">
-<p>Not a registered user??</p>
-  
-<a href="sign.html"><b>SIGN UP</b></a></h2>
+  <h3 style="font-family:broadway">
+<p>New on MY MUSIC??</p>
+  <a href="sign.html"><b>Create an account</b></a></h3>
 </form>
 
 </div>
 </center>
+
 <div id="section" align="center">
+<img src="b1.gif" alt="HTML5 Icon" height="550" width="720">
 </div>
+
+
 <script>
 
   function validateForm() {
-    var x = document.forms["review"]["Email"].value;
+    var x = document.forms["review"]["uname"].value;
     if (x == null || x == "") {
-        alert("Email id must be filled out");
+        alert("Username must be filled out");
         return false;
     }
-    x = document.forms["review"]["Pass"].value;
+    x = document.forms["review"]["pass"].value;
     if (x == null || x == "") {
         alert("Password must be filled out");
         return false;
@@ -62,7 +63,7 @@ t {font-family:broadway}
 
      x=window.confirm("Are u sure u want to submit ?")
      if (x)
-      window.location="mainhome.php"
+      window.location="user-dashboard.php"
      else 
       window.location="login.html"
 }
@@ -73,7 +74,7 @@ t {font-family:broadway}
 {
 background-color: #FFFFFF;
 font-size:200%;
-color:DC143C;
+color:FFFFFF;
 }
 
 ul#menu, ul#menu ul.sub-menu {
@@ -98,7 +99,7 @@ ul#menu li a, ul#menu li ul.sub-menu li a {
    text-align:center;
    font-family:broadway;
 
-    background-color: DC143C;
+    background-color: FFFFFF;
     padding: 10px;
     display:inline-block;
     width: 250px;
@@ -122,7 +123,7 @@ ul#menu li:hover ul.sub-menu {
     display:block;
 }
 #nav {
-    color:white;
+    color:black;
     line-height:30px;
     width:600px;
     height:500px;
@@ -130,20 +131,26 @@ ul#menu li:hover ul.sub-menu {
     padding:5px;
     text-align: center;
     
-    background-color: DC143C;	
+    background-color: FFFFFF;	
     
 }
 #section {
     
     float:center;
-    padding:10px; 
-    height:500px;	 
+    padding:20px; 
+    height:300px;	 
+}
+#section1 {
+    
+    float:center;
+    padding:5px; 
+     
 }
 a:link {
     color: white;
 }
 a:visited{
-color: white;
+color: blue;
 }
 
 </style>
