@@ -82,12 +82,12 @@ function fetch_other_users_playlists() {
 }
 
 function fetch_playlistname() {
-    $sql = "SELECT PlaylistName FROM Playlist  WHERE PlaylistName= ?";
+    $sql = "SELECT PlaylistName FROM Playlist  WHERE PlaylistId= ?";
     return $sql;
 }
 
 function fetch_playlisttracks() {
-    $sql = "SELECT t.TrackId, t.TrackName, t.TrackDuration, avg(r.Rating)as avg_rating,t.ArtistTitle from tracks t join Rating r where t.TrackId IN (SELECT TrackId FROM Playlist P join PlayTracks PT WHERE PlaylistName=? and P.PlaylistId=PT.PlaylistId) group by t.TrackId order by avg_rating desc limit 25";
+    $sql = "SELECT t.TrackId, t.TrackName, t.TrackDuration, ifnull(avg(r.Rating),0) as avg_rating,t.ArtistTitle from tracks t left outer join Rating r on r.TrackId = t.TrackId where t.TrackId IN (SELECT TrackId FROM Playlist P join PlayTracks PT WHERE P.PlaylistId=? and P.PlaylistId=PT.PlaylistId) group by t.TrackId order by avg_rating desc limit 25";
     return $sql;
 }
 
@@ -98,7 +98,7 @@ function fetch_artistfromtracks() {
 
 function fetch_searchtracks() {
 
-    $sql="SELECT t.TrackId, t.TrackName, t.ArtistTitle, t.TrackDuration, avg(rating) as avg_rating from tracks t join Rating r where TrackName like ? group by t.TrackId order by avg_rating desc LIMIT 10";
+    $sql="SELECT t.TrackId, t.TrackName, t.ArtistTitle, t.TrackDuration, ifnull(avg(r.rating),0) as avg_rating from tracks t left outer join Rating r on r.TrackId = t.TrackId where TrackName like ? group by t.TrackId order by avg_rating desc LIMIT 10";
     return $sql;
 }
 
@@ -126,10 +126,6 @@ function fetch_searchartists1() {
     $sql = "select ArtistTitle from artists where ArtistTitle like ?";
     return $sql;
 }
-function insert_into_likes() {
-    $sql = "INSERT INTO `Likes` (ArtistTitle, UName, ltime) values(?, ?, now())";
-    return $sql;
-}
 
 function insert_into_followers() {
     $sql = "INSERT INTO `Followers` (UName, UFollowing, Ftime) values(?, ?, now())";
@@ -143,26 +139,6 @@ function delete_from_followers() {
 
 function insert_into_play_history() {
     $sql = "INSERT INTO PlayHistory values(?, ?, ?, now())";
-    return $sql;
-}
-
-function fetch_user_play_history() {
-    $sql = "SELECT t.TrackId, t.TrackName, t.ArtistTitle, t.TrackDuration from tracks t join PlayHistory p on t.TrackId = p.TrackId where UName = :uname order by PTime desc LIMIT :offset , :max_limit";
-    return $sql;
-}
-
-function fetch_best_songs() {
-    $sql = "SELECT t.TrackId, t.TrackName, t.ArtistTitle, t.TrackDuration, avg(rating) as avg_rating from tracks t join Rating r on r.TrackId = t.TrackId group by t.TrackId order by avg_rating desc LIMIT :offset , :max_limit";
-    return $sql;
-}
-
-function fetch_songs_by_artist_you_like() {
-    $sql = "SELECT x.TrackId, x.TrackName, x.ArtistTitle, x.TrackDuration, ifnull(avg(r.Rating),0) as avg_rating FROM (SELECT t.TrackId, t.TrackName, t.ArtistTitle, t.TrackDuration from tracks t join Likes l on (l.ArtistTitle = t.ArtistTitle) where l.UName = :uname) as x left outer join Rating r on r.TrackId = x.TrackId group by x.TrackId order by avg_rating desc limit :offset , :max_limit";
-    return $sql;
-}
-
-function fetch_recent_albums() {
-    $sql = "select AlbumId, AlbumName from albums order by AlbumReleaseDate desc limit :offset , :max_limit";
     return $sql;
 }
 
@@ -206,11 +182,6 @@ function delete_from_likes() {
     return $sql;
 }
 
-function insert_into_play_history() {
-    $sql = "INSERT INTO PlayHistory values(?, ?, ?, now())";
-    return $sql;
-}
-
 function fetch_user_play_history() {
     $sql = "SELECT t.TrackId, t.TrackName, t.ArtistTitle, t.TrackDuration, ifnull(avg(r.rating),0) as avg_rating from tracks t join PlayHistory p on t.TrackId = p.TrackId left outer join Rating r on r.TrackId = p.TrackId  where p.UName = :uname group by p.PTime order by PTime desc LIMIT :offset , :max_limit";
     //$sql = "SELECT t.TrackId, t.TrackName, t.ArtistTitle, t.TrackDuration, ifnull(avg(r.rating),0) as avg_rating from tracks t join PlayHistory p on t.TrackId = p.TrackId left outer join Rating r on r.TrackId = p.TrackId  where UName = :uname order by PTime desc LIMIT :offset , :max_limit";
@@ -232,10 +203,6 @@ function fetch_recent_albums() {
     return $sql;
 }
 
-function fetch_playlists_of_users_you_follow() {
-    $sql = "select PlaylistId, PlaylistName from Playlist p join Followers f on p.UName = f.UFollowing  where f.UName = :uname and Is_Private = 0 limit :offset , :max_limit";
-    return $sql;
-}
 
 function fetch_ratings_for_track() {
     $sql = "select TrackId, Rating from Rating where TrackId IN :all_tracks and UName = 'dj'";

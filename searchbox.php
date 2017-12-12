@@ -37,6 +37,19 @@ function get_search_albums($conn, $keyword1) {
     return $rows;
 }
 
+if (isset($_POST['track-id-rating']) && isset($_POST['rating-value'])) {
+    $rating_given = $_POST['rating-value'];
+    $track_rated = $_POST['track-id-rating'];
+    $username = $_SESSION['username'];
+    insert_into_ratings($conn, $username, $rating_given, $track_rated);
+}
+
+function insert_into_ratings($conn, $username, $rating_given, $track_rated) {
+    $sql = insert_or_update_into_ratings_sql();
+    $stmt = $conn->prepare($sql);
+    $stmt->execute([$track_rated, $username, $rating_given, $rating_given]);
+}
+
 ?>
 
 <!DOCTYPE html>
@@ -47,7 +60,7 @@ function get_search_albums($conn, $keyword1) {
         <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
         <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
     </head>
-    <body><?php require_once 'header.html'; ?>
+    <body><?php require_once 'header.php'; ?>
 
         <div id="page-container">
             
@@ -76,15 +89,18 @@ function get_search_albums($conn, $keyword1) {
                             </form>
                             <li class="song-header-rating col-sm-1"><?php echo number_format($arr['avg_rating'], 2, '.', ''); ?></li>
                             <li class="song-header-duration col-sm-1"><?php echo number_format(($arr['TrackDuration'] / 60000), 2, ':', ''); ?></li>
-                            <li>
-                                <fieldset class="rating">
-                                    <input type="radio" id="star5" name="rating" value="5" /><label for="star5" title="Rocks!">5 stars</label>
-                                    <input type="radio" id="star4" name="rating" value="4" /><label for="star4" title="Pretty good">4 stars</label>
-                                    <input type="radio" id="star3" name="rating" value="3" /><label for="star3" title="Meh">3 stars</label>
-                                    <input type="radio" id="star2" name="rating" value="2" /><label for="star2" title="Kinda bad">2 stars</label>
-                                    <input type="radio" id="star1" name="rating" value="1" /><label for="star1" title="Sucks big time">1 star</label>
-                                </fieldset>
-                            </li>
+                            <form id="rating-<?php echo $arr['TrackId']; ?>" method="POST" action="#nav-<?php echo $i; ?>">
+                                    <input type="hidden" value="<?php echo $arr['TrackId']; ?>" id="track-id-rating" name="track-id-rating"/>
+                                    <li>
+                                        <select id="rating-value" name="rating-value" onchange="document.getElementById('rating-<?php echo $arr['TrackId'] ?>').submit();">
+                                            <option value="1" >1</option>
+                                            <option value="2" >2</option>
+                                            <option value="3" >3</option>
+                                            <option value="4" >4</option>
+                                            <option value="5" >5</option>
+                                        </select>
+                                    </li>
+                                </form>
                         </ul>
 
                     <?php endforeach; ?>

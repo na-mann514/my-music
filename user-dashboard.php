@@ -5,6 +5,7 @@
  * and open the template in the editor.
  */
 session_start();
+
 require_once 'DbConnection.php';
 require_once 'SqlQueries.php';
 
@@ -12,7 +13,7 @@ $db_conn = new DBConnection();
 $conn = $db_conn->getDBConnection();
 $conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 
-$username = 'dj'; //$_SESSION['username'];
+$username = $_SESSION['username'];
 
 
 $user_play_history = get_user_play_history($conn, $username);
@@ -89,6 +90,19 @@ function insert_into_ratings($conn, $username, $rating_given, $track_rated) {
     $stmt = $conn->prepare($sql);
     $stmt->execute([$track_rated, $username, $rating_given, $rating_given]);
 }
+
+if (isset($_POST['user_play_track']) && isset($_POST['artist-title'])) {
+    $track_id = htmlspecialchars($_POST['user_play_track']);
+    $artist_title = $_POST['artist-title'];
+    insert_into_playhistory($conn, $track_id, $artist_title, $username);
+}
+
+function insert_into_playhistory($conn, $track_id, $artist_title, $username) {
+
+    $sql = insert_into_play_history();
+    $stmt = $conn->prepare($sql);
+    $stmt->execute([$username, $track_id, $artist_title]);
+}
 ?>
 
 <!DOCTYPE html>
@@ -100,7 +114,7 @@ function insert_into_ratings($conn, $username, $rating_given, $track_rated) {
         <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
     </head>
     <body>
-<?php require_once 'header.html'; ?>
+<?php require_once 'header.php'; ?>
         <div id="page-container">
 
             <!-- Top Songs-->
@@ -120,6 +134,7 @@ function insert_into_ratings($conn, $username, $rating_given, $track_rated) {
                                 <li class="song-header-cnt col-sm-1"><?php echo $i + 1; ?></li>
                                 <form id="nav-top-<?php echo $arr['TrackId']; ?>" method="POST" action="#nav-top-<?php echo $i; ?>">
                                     <input type="hidden" name="user_play_track" id="user_play_track" value="<?php echo $arr['TrackId']; ?>"/>
+                                    <input type="hidden" name="artist-title" id="artist-title" value="<?php echo $arr['ArtistTitle'];?>">
                                     <li class="song-header-title col-sm-4">
                                         <a onclick="document.getElementById('nav-top-<?php echo $arr['TrackId']; ?>').submit();">
                                             <?php echo ucwords($arr['TrackName']); ?>
@@ -164,6 +179,7 @@ function insert_into_ratings($conn, $username, $rating_given, $track_rated) {
                                 <li class="song-header-cnt col-sm-1"><?php echo $i + 1; ?></li>
                                 <form id="nav-fas-<?php echo $arr['TrackId']; ?>" method="POST" action="#nav-fas-<?php echo $i; ?>">
                                     <input type="hidden" name="user_play_track" id="user_play_track" value="<?php echo $arr['TrackId']; ?>"/>
+                                    <input type="hidden" name="artist-title" id="artist-title" value="<?php echo $arr['ArtistTitle'];?>">
                                     <li class="song-header-title col-sm-4">
                                         <a onclick="document.getElementById('nav-fas-<?php echo $arr['TrackId']; ?>').submit();">
                                             <?php echo ucwords($arr['TrackName']); ?>
@@ -215,7 +231,7 @@ function insert_into_ratings($conn, $username, $rating_given, $track_rated) {
                         <ul class="row">
 
                             <?php foreach ($playlists_of_users_you_follow as $i => $arr): ?>
-                                <li class="col-md-1"><a href="./playlist?id=<?php echo $arr['PlaylistId']; ?>"><?php echo $arr['PlaylistName']; ?></a></li>
+                                <li class="col-md-1"><a href="./playlist.php?id=<?php echo $arr['PlaylistId']; ?>"><?php echo $arr['PlaylistName']; ?></a></li>
                             <?php endforeach; ?>
 
                         </ul>
@@ -240,6 +256,7 @@ function insert_into_ratings($conn, $username, $rating_given, $track_rated) {
                                 <li class="song-header-cnt col-sm-1"><?php echo $i + 1; ?></li>
                                 <form id="nav-phs-<?php echo $arr['TrackId']; ?>" method="POST" action="#nav-phs-<?php echo $i; ?>">
                                     <input type="hidden" name="user_play_track" id="user_play_track" value="<?php echo $arr['TrackId']; ?>"/>
+                                    <input type="hidden" name="artist-title" id="artist-title" value="<?php echo $arr['ArtistTitle'];?>">
                                     <li class="song-header-title col-sm-4">
                                         <a onclick="document.getElementById('nav-phs-<?php echo $arr['TrackId']; ?>').submit();">
                                             <?php echo ucwords($arr['TrackName']); ?>
@@ -274,5 +291,4 @@ function insert_into_ratings($conn, $username, $rating_given, $track_rated) {
         </div>
 
     </body>
->>>>>>> 2f8cc6130b328174f81fff7cfc818ab135f786a7
 </html>

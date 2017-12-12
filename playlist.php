@@ -8,29 +8,30 @@ $db_conn = new DBConnection();
 $conn = $db_conn->getDBConnection();
 //$artist_title='Maroon';
 //$artist_title = htmlspecialchars($_GET['aname']);
-$username = 'dj'; //$_SESSION['username'];
+$username = $_SESSION['username'];
 //$username = htmlspecialchars($_GET['uname']);
 //$username = 'dj';
-$PlaylistName='Kinjal';
+$PlaylistId=$_GET['id'];
 
-$playlist_info = fetch_playlist_details($conn, $PlaylistName);
 
-function fetch_playlist_details($conn, $PlaylistName) {
+$playlist_info = fetch_playlist_details($conn, $PlaylistId);
+
+function fetch_playlist_details($conn, $PlaylistId) {
     $playlist_info = array();
     $conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 
     $sql = fetch_playlistname();
     $stmt = $conn->prepare($sql);
-    $stmt->execute([$PlaylistName]);
+    $stmt->execute([$PlaylistId]);
     $rows = $stmt->fetch(PDO::FETCH_ASSOC);
     $playlist_info['PlaylistName'] = $rows['PlaylistName'];
 
     $sql = fetch_playlisttracks();
     $stmt = $conn->prepare($sql);
-    $stmt->execute([$PlaylistName]);
+    $stmt->execute([$PlaylistId]);
     $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
     $playlist_info['playlist_tracks'] = $rows;
-
+    print_r($playlist_info);
     return $playlist_info;
 }
 
@@ -58,7 +59,7 @@ function insert_into_playhistory($conn, $track_id, $artist_title, $username) {
         <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.6/js/bootstrap.min.js" integrity="sha384-vBWWzlZJ8ea9aCX4pEW3rVHjgjt7zpkNpZk+02D9phzyeVkE+jo0ieGizqPLForn" crossorigin="anonymous"></script>
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
     </head>
-    <body><?php require_once 'header.html'; ?>
+    <body><?php require_once 'header.php'; ?>
 
         <div id="page-container">
             
