@@ -1,5 +1,5 @@
 <?php
-
+session_start();
 /*
  * To change this license header, choose License Headers in Project Properties.
  * To change this template file, choose Tools | Templates
@@ -8,7 +8,7 @@
 require_once 'DbConnection.php';
 require_once 'SqlQueries.php';
 
-$username = 'dj'; //$_SESSION['username'];
+$logged_in_username = $_SESSION['username'];
 $artist_title = $_POST['artist_title'];
 
 $db_conn = new DBConnection();
@@ -17,7 +17,7 @@ $conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 
 $sql = does_user_like_artist();
 $stmt = $conn->prepare($sql);
-$stmt->execute([$artist_title, $username]);
+$stmt->execute([$artist_title, $logged_in_username]);
 $rows = $stmt->fetch(PDO::FETCH_ASSOC);
 $does_user_like = $rows['rec_count'] > 0 ? 1 : 0;
 
@@ -27,7 +27,7 @@ if ($does_user_like == 0 && $current_like_value == 1) {
     try {
         $sql = insert_into_likes();
         $stmt = $conn->prepare($sql);
-        $stmt->execute([$artist_title, $username]);
+        $stmt->execute([$artist_title, $logged_in_username]);
         $success = 1;
     }
     catch (PDOException $E) {
@@ -37,7 +37,7 @@ if ($does_user_like == 0 && $current_like_value == 1) {
 elseif ($does_user_like == 1 && $current_like_value == 0) {
     $sql = delete_from_likes();
     $stmt = $conn->prepare($sql);
-    $stmt->execute([$artist_title, $username]);
+    $stmt->execute([$artist_title, $logged_in_username]);
     $success = 1;
 }
 

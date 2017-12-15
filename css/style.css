@@ -12,10 +12,11 @@ and open the template in the editor.
 #section1 {
     
     float:center;
-    padding:50px; 
+    padding-right: 50px; 
+    padding-left: 50px;
+    padding-top: 50px;
     font-weight: 900;
-    font-size:200%;
-     
+    font-size:200%;  
 }
 
 #artist-image
@@ -23,9 +24,21 @@ and open the template in the editor.
     width: 150px;
     margin: 0 10px 0 0;
     position: relative;
-    padding-top: 100px;
+    padding-top: 20px;
 }
 #artist-image, #artist-summary
+{
+    display: inline;
+}
+
+#user-image
+{
+    width: 150px;
+    margin: 0 10px 0 0;
+    position: relative;
+    padding-top: 20px;
+}
+#user-image, #user-summary
 {
     display: inline;
 }
@@ -33,7 +46,7 @@ and open the template in the editor.
 #summary-and-bio
 {
     position: relative;
-    padding-top: 100px;
+    padding-top: 20px;
     padding-left: 120px;
 }
 #success-msg
@@ -61,6 +74,7 @@ and open the template in the editor.
     
 }
 
+
 #fav-artist-songs-headers li
 {
     display: inline;
@@ -72,6 +86,15 @@ and open the template in the editor.
 }
 
 #play-history-songs-headers li
+{
+    display: inline;
+    list-style-type: none;
+    //padding-left: 30px;
+    font-weight: 900;
+    display: block;
+    overflow: auto;
+}
+#songs-list li
 {
     display: inline;
     list-style-type: none;
@@ -103,6 +126,7 @@ and open the template in the editor.
     padding-left: 120px;
     overflow-y: scroll;
     height: 650px;
+    padding-right: 120px;
 }
 
 .iframe-container
@@ -115,4 +139,9 @@ and open the template in the editor.
     width: 80%; 
     overflow: hidden; 
     bottom: -260px;
+}
+
+.web-btn
+{
+    width:170px;
 }

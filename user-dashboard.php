@@ -13,31 +13,49 @@ $db_conn = new DBConnection();
 $conn = $db_conn->getDBConnection();
 $conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 
-$username = $_SESSION['username'];
+$logged_in_username = $_SESSION['username'];
 
+if (isset($_POST['track-id-rating']) && isset($_POST['rating-value'])) {
+    $rating_given = $_POST['rating-value'];
+    $track_rated = $_POST['track-id-rating'];
+    insert_into_ratings($conn, $logged_in_username, $rating_given, $track_rated);
+}
+$my_playlists = get_my_playlists($conn, $logged_in_username);
 
-$user_play_history = get_user_play_history($conn, $username);
+$best_songs = get_best_songs($conn, $logged_in_username, $my_playlists);
 
-$best_songs = get_best_songs($conn);
-
-$songs_by_artists_you_like = get_songs_by_artists_you_like($conn, $username);
+$songs_by_artists_you_like = get_songs_by_artists_you_like($conn, $logged_in_username, $my_playlists);
 
 $recent_albums = get_recent_albums($conn);
 
-$playlists_of_users_you_follow = get_playlists_of_users_you_follow($conn, $username);
+$playlists_of_users_you_follow = get_playlists_of_users_you_follow($conn, $logged_in_username);
 
-function get_best_songs($conn) {
-    $sql = fetch_best_songs();
-    $stmt = $conn->prepare($sql);
-    $stmt->bindValue(':offset', intval(0), PDO::PARAM_INT);
-    $stmt->bindValue(':max_limit', intval(10), PDO::PARAM_INT);
+function get_best_songs($conn, $username, $my_playlists) {
+    if ($my_playlists) {
+        $sql = fetch_best_songs();
+        $stmt = $conn->prepare($sql);
+        $stmt->bindValue(':uname', strval($username), PDO::PARAM_STR);
+        $stmt->bindValue(':offset', intval(0), PDO::PARAM_INT);
+        $stmt->bindValue(':max_limit', intval(10), PDO::PARAM_INT);
+    }
+    else {
+        $sql = fetch_best_songs_1();
+        $stmt = $conn->prepare($sql);
+        $stmt->bindValue(':offset', intval(0), PDO::PARAM_INT);
+        $stmt->bindValue(':max_limit', intval(10), PDO::PARAM_INT);
+    }
     $stmt->execute();
     $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
     return $rows;
 }
 
-function get_user_play_history($conn, $username) {
-    $sql = fetch_user_play_history();
+function get_user_play_history($conn, $username, $my_playlists) {
+    if ($my_playlists) {
+        $sql = fetch_user_play_history();
+    }
+    else {
+        $sql = fetch_user_play_history_1();
+    }
     $stmt = $conn->prepare($sql);
     $stmt->bindValue(':uname', $username, PDO::PARAM_STR);
     $stmt->bindValue(':offset', intval(0), PDO::PARAM_INT);
@@ -47,8 +65,13 @@ function get_user_play_history($conn, $username) {
     return $rows;
 }
 
-function get_songs_by_artists_you_like($conn, $username) {
-    $sql = fetch_songs_by_artist_you_like();
+function get_songs_by_artists_you_like($conn, $username, $my_playlists) {
+    if ($my_playlists) {
+        $sql = fetch_songs_by_artist_you_like();
+    }
+    else {
+        $sql = fetch_songs_by_artist_you_like_1();
+    }
     $stmt = $conn->prepare($sql);
     $stmt->bindValue(':uname', $username, PDO::PARAM_STR);
     $stmt->bindValue(':offset', intval(0), PDO::PARAM_INT);
@@ -79,12 +102,6 @@ function get_playlists_of_users_you_follow($conn, $username) {
     return $rows;
 }
 
-if (isset($_POST['track-id-rating']) && isset($_POST['rating-value'])) {
-    $rating_given = $_POST['rating-value'];
-    $track_rated = $_POST['track-id-rating'];
-    insert_into_ratings($conn, $username, $rating_given, $track_rated);
-}
-
 function insert_into_ratings($conn, $username, $rating_given, $track_rated) {
     $sql = insert_or_update_into_ratings_sql();
     $stmt = $conn->prepare($sql);
@@ -94,7 +111,7 @@ function insert_into_ratings($conn, $username, $rating_given, $track_rated) {
 if (isset($_POST['user_play_track']) && isset($_POST['artist-title'])) {
     $track_id = htmlspecialchars($_POST['user_play_track']);
     $artist_title = $_POST['artist-title'];
-    insert_into_playhistory($conn, $track_id, $artist_title, $username);
+    insert_into_playhistory($conn, $track_id, $artist_title, $logged_in_username);
 }
 
 function insert_into_playhistory($conn, $track_id, $artist_title, $username) {
@@ -103,6 +120,16 @@ function insert_into_playhistory($conn, $track_id, $artist_title, $username) {
     $stmt = $conn->prepare($sql);
     $stmt->execute([$username, $track_id, $artist_title]);
 }
+
+$user_play_history = get_user_play_history($conn, $logged_in_username, $my_playlists);
+
+function get_my_playlists($conn, $username) {
+    $sql = fetch_my_playlists();
+    $stmt = $conn->prepare($sql);
+    $stmt->execute([$username]);
+    $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    return $rows;
+}
 ?>
 
 <!DOCTYPE html>
@@ -110,101 +137,47 @@ function insert_into_playhistory($conn, $track_id, $artist_title, $username) {
     <head>
         <meta charset="utf-8">
         <link rel="stylesheet" type="text/css" href="css/style.css">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
         <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
         <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+        <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
     </head>
     <body>
-<?php require_once 'header.php'; ?>
+        <?php require 'header.php'; ?>
         <div id="page-container">
+
+            <?php if (isset($_SESSION['add-to-playlist']['error'])): ?><div><p class="alert alert-danger row"><?php
+                echo $_SESSION['add-to-playlist']['error'];
+                unset($_SESSION['add-to-playlist']['error']);
+                ?></p></div><?php endif; ?>
+            <?php if (isset($_SESSION['add-to-playlist']['success'])): ?><div><p class="alert alert-success"><?php
+                echo $_SESSION['add-to-playlist']['success'];
+                unset($_SESSION['add-to-playlist']['success']);
+                ?></p></div><?php endif; ?>
+            <?php if (isset($_SESSION['add-to-playlist']['info'])): ?><div><p class="alert alert-info"><?php
+                echo $_SESSION['add-to-playlist']['info'];
+                unset($_SESSION['add-to-playlist']['info']);
+                ?></p></div><?php endif; ?>
+
 
             <!-- Top Songs-->
             <?php if ($best_songs): ?>
-                <div id="top-songs">
-                    <div id="top-songs-headers">
-                        <h3>Top Songs</h3>
-                        <ul id="top-songs-headers" class="row">
-                            <li class="song-header-cnt col-sm-1">#</li>
-                            <li class="song-header-title col-sm-4">TITLE</li>
-                            <li class="song-header-rating col-sm-1">AVG. RATINGS</li>
-                            <li class="song-header-duration col-sm-1">DURATION</li>
-                            <li class="song-header-rate">RATE</li>
-                        </ul>
-                        <?php foreach ($best_songs as $i => $arr): ?>
-                            <ul id ="nav-top-<?php echo $i; ?>" class="row pay-load">
-                                <li class="song-header-cnt col-sm-1"><?php echo $i + 1; ?></li>
-                                <form id="nav-top-<?php echo $arr['TrackId']; ?>" method="POST" action="#nav-top-<?php echo $i; ?>">
-                                    <input type="hidden" name="user_play_track" id="user_play_track" value="<?php echo $arr['TrackId']; ?>"/>
-                                    <input type="hidden" name="artist-title" id="artist-title" value="<?php echo $arr['ArtistTitle'];?>">
-                                    <li class="song-header-title col-sm-4">
-                                        <a onclick="document.getElementById('nav-top-<?php echo $arr['TrackId']; ?>').submit();">
-                                            <?php echo ucwords($arr['TrackName']); ?>
-                                        </a>
-                                    </li>
-                                </form>
-                                <li class="song-header-rating col-sm-1"><?php echo number_format($arr['avg_rating'], 2, '.', ''); ?></li>
-                                <li class="song-header-duration col-sm-1"><?php echo number_format(($arr['TrackDuration'] / 60000), 2, ':', ''); ?></li>
-                                <form id="rating-<?php echo $arr['TrackId']; ?>" method="POST" action="#nav-<?php echo $i; ?>">
-                                    <input type="hidden" value="<?php echo $arr['TrackId']; ?>" id="track-id-rating" name="track-id-rating"/>
-                                    <li>
-                                        <select id="rating-value" name="rating-value" onchange="document.getElementById('rating-<?php echo $arr['TrackId'] ?>').submit();">
-                                            <option value="1" >1</option>
-                                            <option value="2" >2</option>
-                                            <option value="3" >3</option>
-                                            <option value="4" >4</option>
-                                            <option value="5" >5</option>
-                                        </select>
-                                    </li>
-                                </form>
-                            </ul>
-
-                        <?php endforeach; ?>
-                    </div>
-                </div>
+                <h3>Top Songs</h3>
+                <?php
+                $song_type_to_fetch = $best_songs;
+                $div_appender = "top-songs";
+                require 'render-songs.php';
+                ?>
             <?php endif; ?>
 
             <!-- Fav artist songs-->
             <?php if ($songs_by_artists_you_like): ?>
-                <div id="fav-artist-songs">
-                    <div id="fav-artist-songs-headers">
-                        <h3>Songs by Your Favorite Artists</h3>
-                        <ul id="fav-artist-songs-headers" class="row">
-                            <li class="song-header-cnt col-sm-1">#</li>
-                            <li class="song-header-title col-sm-4">TITLE</li>
-                            <li class="song-header-rating col-sm-1">AVG. RATINGS</li>
-                            <li class="song-header-duration col-sm-1">DURATION</li>
-                            <li class="song-header-rate">RATE</li>
-                        </ul>
-                        <?php foreach ($songs_by_artists_you_like as $i => $arr): ?>
-                            <ul id ="nav-fas-<?php echo $i; ?>" class="row pay-load">
-                                <li class="song-header-cnt col-sm-1"><?php echo $i + 1; ?></li>
-                                <form id="nav-fas-<?php echo $arr['TrackId']; ?>" method="POST" action="#nav-fas-<?php echo $i; ?>">
-                                    <input type="hidden" name="user_play_track" id="user_play_track" value="<?php echo $arr['TrackId']; ?>"/>
-                                    <input type="hidden" name="artist-title" id="artist-title" value="<?php echo $arr['ArtistTitle'];?>">
-                                    <li class="song-header-title col-sm-4">
-                                        <a onclick="document.getElementById('nav-fas-<?php echo $arr['TrackId']; ?>').submit();">
-                                            <?php echo ucwords($arr['TrackName']); ?>
-                                        </a>
-                                    </li>
-                                </form>
-                                <li class="song-header-rating col-sm-1"><?php echo number_format($arr['avg_rating'], 2, '.', ''); ?></li>
-                                <li class="song-header-duration col-sm-1"><?php echo number_format(($arr['TrackDuration'] / 60000), 2, ':', ''); ?></li>
-                                <form id="rating-<?php echo $arr['TrackId']; ?>" method="POST" action="#nav-<?php echo $i; ?>">
-                                    <input type="hidden" value="<?php echo $arr['TrackId']; ?>" id="track-id-rating" name="track-id-rating"/>
-                                    <li>
-                                        <select id="rating-value" name="rating-value" onchange="document.getElementById('rating-<?php echo $arr['TrackId'] ?>').submit();">
-                                            <option value="1" >1</option>
-                                            <option value="2" >2</option>
-                                            <option value="3" >3</option>
-                                            <option value="4" >4</option>
-                                            <option value="5" >5</option>
-                                        </select>
-                                    </li>
-                                </form>
-                            </ul>
-
-                        <?php endforeach; ?>
-                    </div>
-                </div>
+                <h3>Songs by your Fav Artists</h3>
+                <?php
+                $song_type_to_fetch = $songs_by_artists_you_like;
+                $div_appender = "fav-artist";
+                require 'render-songs.php';
+                ?>
             <?php endif; ?>
 
             <!-- Recent Albums-->
@@ -215,7 +188,7 @@ function insert_into_playhistory($conn, $track_id, $artist_title, $username) {
                         <ul class="row">
 
                             <?php foreach ($recent_albums as $i => $arr): ?>
-                                <li class="col-md-1"><a href="./album?id=<?php echo $arr['AlbumId']; ?>"><?php echo $arr['AlbumName']; ?></a></li>
+                                <li class="col-md-1"><a href="./album.php?id=<?php echo $arr['AlbumId']; ?>"><?php echo $arr['AlbumName']; ?></a></li>
                             <?php endforeach; ?>
 
                         </ul>
@@ -227,13 +200,13 @@ function insert_into_playhistory($conn, $track_id, $artist_title, $username) {
             <?php if ($playlists_of_users_you_follow): ?>
                 <div id="follower-playlist">
                     <div id="playlist-headers">
-                        <h3>Playlists of you Users You Follow</h3>
+                        <h3>Playlists by People You Follow</h3>
                         <ul class="row">
-
-                            <?php foreach ($playlists_of_users_you_follow as $i => $arr): ?>
-                                <li class="col-md-1"><a href="./playlist.php?id=<?php echo $arr['PlaylistId']; ?>"><?php echo $arr['PlaylistName']; ?></a></li>
-                            <?php endforeach; ?>
-
+                            <table class="table-bordered table-hover">
+                                <?php foreach ($playlists_of_users_you_follow as $i => $arr): ?>
+                                <tr><li class="col-md-1"><a href="./playlist.php?id=<?php echo $arr['PlaylistId']; ?>"><?php echo $arr['PlaylistName']; ?></a></li></tr>
+                                <?php endforeach; ?>
+                            </table>
                         </ul>
                     </div>
                 </div>
@@ -241,48 +214,14 @@ function insert_into_playhistory($conn, $track_id, $artist_title, $username) {
 
             <!-- Play history-->
             <?php if ($user_play_history): ?>
-                <div id="play-history">
-                    <div id="play-history-songs-headers">
-                        <h3>Your Play History</h3>
-                        <ul id="play-history-songs-headers" class="row">
-                            <li class="song-header-cnt col-sm-1">#</li>
-                            <li class="song-header-title col-sm-4">TITLE</li>
-                            <li class="song-header-rating col-sm-1">AVG. RATINGS</li>
-                            <li class="song-header-duration col-sm-1">DURATION</li>
-                            <li class="song-header-rate">RATE</li>
-                        </ul>
-                        <?php foreach ($user_play_history as $i => $arr): ?>
-                            <ul id ="nav-phs-<?php echo $i; ?>" class="row pay-load">
-                                <li class="song-header-cnt col-sm-1"><?php echo $i + 1; ?></li>
-                                <form id="nav-phs-<?php echo $arr['TrackId']; ?>" method="POST" action="#nav-phs-<?php echo $i; ?>">
-                                    <input type="hidden" name="user_play_track" id="user_play_track" value="<?php echo $arr['TrackId']; ?>"/>
-                                    <input type="hidden" name="artist-title" id="artist-title" value="<?php echo $arr['ArtistTitle'];?>">
-                                    <li class="song-header-title col-sm-4">
-                                        <a onclick="document.getElementById('nav-phs-<?php echo $arr['TrackId']; ?>').submit();">
-                                            <?php echo ucwords($arr['TrackName']); ?>
-                                        </a>
-                                    </li>
-                                </form>
-                                <li class="song-header-rating col-sm-1"><?php echo number_format($arr['avg_rating'], 2, '.', ''); ?></li>
-                                <li class="song-header-duration col-sm-1"><?php echo number_format(($arr['TrackDuration'] / 60000), 2, ':', ''); ?></li>
-                                <form id="rating-<?php echo $arr['TrackId']; ?>" method="POST" action="#nav-<?php echo $i; ?>">
-                                    <input type="hidden" value="<?php echo $arr['TrackId']; ?>" id="track-id-rating" name="track-id-rating"/>
-                                    <li>
-                                        <select id="rating-value" name="rating-value" onchange="document.getElementById('rating-<?php echo $arr['TrackId'] ?>').submit();">
-                                            <option value="1" >1</option>
-                                            <option value="2" >2</option>
-                                            <option value="3" >3</option>
-                                            <option value="4" >4</option>
-                                            <option value="5" >5</option>
-                                        </select>
-                                    </li>
-                                </form>
-                            </ul>
-
-                        <?php endforeach; ?>
-                    </div>
-                </div>
+                <h3>Last Played</h3>
+                <?php
+                $song_type_to_fetch = $user_play_history;
+                $div_appender = "play-history";
+                require 'render-songs.php';
+                ?>
             <?php endif; ?>
+
 
         </div>
         <div class="iframe-container">

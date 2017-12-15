@@ -6,7 +6,7 @@
  */
 if (isset($_SESSION)) {
     session_start();
-    $username = $_SESSION['username'];
+    $logged_in_username = $_SESSION['username'];
 }
 ?>
 
@@ -15,7 +15,7 @@ if (isset($_SESSION)) {
         <a href='user-dashboard.php'><img src='background.png' alt='HTML5 Icon'></a>&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;
         <input placeholder='Search' type='text' name='keyword' id='keyword' />
         <input type='submit' name='submit' value='Search' />&emsp;&emsp;&emsp;&emsp;&emsp;
-            <a href='userprofile.php?uname=<?php echo $username; ?>'> Profile</a>&emsp;&emsp;
+            <a href='userprofile.php?uname=<?php echo $logged_in_username; ?>'> Profile</a>&emsp;&emsp;
             <a href='logout.php'>Logout</a></form></div>
 
 

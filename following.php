@@ -13,17 +13,13 @@ $db_conn = new DBConnection();
 $conn = $db_conn->getDBConnection();
 
 
-//$artist_title = htmlspecialchars($_GET['aname']);
+$dest_user = htmlspecialchars($_GET['uname']);
+$logged_in_username = $_SESSION['username'];
 
-$username1 = htmlspecialchars($_GET['uname']);
-$username=$_SESSION['username'];
-//$username-'dj';
-
-$user_info = fetch_user_profile_details($conn, $username);
+$user_info = fetch_user_profile_details($conn, $dest_user);
 
 function fetch_user_profile_details($conn, $username) {
-    //$user_info = array();
-    $user_info['username']=$username;
+    $user_info['username'] = $username;
     $conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 
     $sql = fetch_user_bio_details();
@@ -71,92 +67,67 @@ function fetch_user_profile_details($conn, $username) {
         <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
         <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
         <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.6/js/bootstrap.min.js" integrity="sha384-vBWWzlZJ8ea9aCX4pEW3rVHjgjt7zpkNpZk+02D9phzyeVkE+jo0ieGizqPLForn" crossorigin="anonymous"></script>
-        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
     </head>
-    <body><?php require_once 'header.html'; ?>
+    <body><?php require_once 'header.php'; ?>
 
         <div id="page-container">
-            
-            <?php if (isset($user_info['error'])): ?>
-                <div class="alert alert-danger alert-dismissable">
-                    <a href="#" class="close" data-dismiss="alert" aria-label="close">&times;</a>
-                    <?php echo $user_info['error']['message']; ?>
+
+
+
+
+
+            <!-- Displaying Artist Info -->
+            <div id="user-bio" class="row">
+                <div id="user-image" class="col-sm-5">
+                    <img title="<?php echo ucwords($user_info['username']); ?> image" alt="<?php ucwords($user_info['username']) ?>" src="artist-images/download.png">
                 </div>
-            <?php endif; ?>
-            
-            <?php if (!isset($user_info['error'])): ?>
-                
-                <!-- Displaying Artist Info -->
-                <div id="artist-bio" class="row">
-                    <div id="artist-image" class="col-sm-5">
-                        <img title="<?php echo ucwords($user_info['username']); ?> image" alt="<?php ucwords($user_info['username']) ?>" src="artist-images/download.png">
-                    </div>
-                    
-                    <div id="summary-and-bio" class="col-sm-7">
-                   
-                        <div id="artist-summary">
-                            <h1><?php echo ucwords($user_info['username']); ?> </h1>
+
+                <div id="summary-and-bio" class="col-sm-7">
+
+                    <div id="user-summary">
+                        <h1><?php echo ucwords($user_info['username']); ?> </h1>
+                        <?php if ($logged_in_username == $dest_user): ?>
                             <p> <?php echo $user_info['Email'] ?> </p>
-                            <p> <a href="following.php"><?php echo $user_info['following_count'] ?> Following</a> | <a href="followers.php"><?php echo $user_info['followers_count'] ?> Followers</a></p>
-                        </div>
-                    
-                        
-                       <div id="" class="row">
-                            <div class="col-sm-3">
-                                <form action="FollowUnfollow.php" method="post" class="artist-like-form">
-                                    <input type="hidden" value="<?php echo $username1?>" id="username1" name="username1"/>
-                                    <?php if($user_info['does_follow'] == 1):?>
-                                        <input type="checkbox" class="" id="follow-check" name="follow-check" checked> Follow
-                                    <?php else: ?>
-                                        <input type="checkbox" class="" id="follow-check" name="follow-check"> Follow
-                                    <?php endif; ?>
-                                        <input type="hidden" name="destination" value="<?php echo $_SERVER["REQUEST_URI"]; ?>"/>
-                                        <button type="submit"  class="form-sbmt-btn btn btn-default">Confirm</button>
-                                </form>
-                            </div>
-                        </div>
-                        <?php if(isset($_GET['success'])):?>
-                                <div class="col-sm-4" id="success-msg">
-                                    <?php if($user_info['does_follow'] == 1):?>
-                                            <p class="alert alert-success">You have Followed <?php echo $username1;?></p>
-                                        <?php else:?>
-                                            <p class="alert alert-info">You have Unfollowed <?php echo $username1;?></p>
-                                    <?php endif;?>     
-                                </div>
-                        <?php endif;?> 
+                        <?php endif; ?>
+                        <p> <a href="following.php?uname=<?php echo $dest_user; ?>"><?php echo $user_info['following_count'] ?> Following</a> |
+                            <a href="followers.php?uname=<?php echo $dest_user; ?>"><?php echo $user_info['followers_count'] ?> Followers</a></p>
+                        <?php if ($logged_in_username == $dest_user): ?>
+                            <p> <a href="create_playlist.php"> Create Playlist </a> </p>
+                        <?php endif; ?>
                     </div>
-                </div>  
-                
-        
-                
-                <?php if($user_info['followers']):?>
-                <div id = "top-songs">
+
+
+
+                </div>
+            </div>  
+
+
+
+            <?php if ($user_info['following']): ?>
+                <div id = "followers-list">
                     <h3>You Follow:</h3>
-                    <ul id="top-songs-headers" class="row">
+                    <ul id="top-songs-headers" class="row pay-load">
                         <li class="song-header-cnt col-sm-2">#</li>
                         <li class="song-header-title col-sm-10">FOLLOWING</li>
-                       
-                        
                     </ul>
-                    <?php foreach ($user_info['following'] as $i => $arr): ?>
-                        <ul id ="pay-load">
+                    <ul id ="pay-load" class="row pay-load">
+                        <?php foreach ($user_info['following'] as $i => $arr): ?>
                             <li class="song-header-cnt col-sm-2"><?php echo $i + 1; ?></li>
-                            <?php $temp2= ucwords($arr['following']); ?>
-                         
-                            <li class="song-header-title col-sm-10"><a href="userprofile.php?uname=<?php echo $temp2; ?>"> <?php echo ucwords($arr['following']); ?></a></li>
-                            
-                              
-                        </ul>
-
-                    <?php endforeach; ?>
+                            <?php $temp2 = $arr['following']; ?>
+                            <li class="song-header-title col-sm-10"><a href="./userprofile.php?uname=<?php echo $temp2; ?>"> <?php echo ucwords($arr['following']); ?></a></li>
+                            <?php endforeach; ?>
+                    </ul>
                 </div>
-                <?php endif;?>
+            <?php else: ?>
+                <h3>You Follow:</h3>
+                <p><i>You are not following anyone yet!</i></p>
+            <?php endif; ?>
             </br></br></br>
 
-            
-               
-                
-            <?php endif; ?> 
+
+
+
+
         </div>
     </body>
 </html>

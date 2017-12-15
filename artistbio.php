@@ -1,4 +1,5 @@
 <?php
+session_start();
 /*
  * To change this license header, choose License Headers in Project Properties.
  * To change this template file, choose Tools | Templates
@@ -13,21 +14,26 @@ $conn = $db_conn->getDBConnection();
 
 if (isset($_GET['aname']))
     $artist_title = htmlspecialchars($_GET['aname']);
-//$username = $_SESSION['username'];
-$username = 'dj';
+$logged_in_username = $_SESSION['username'];
 
-if(isset($_POST['track-id-rating']) && isset($_POST['rating-value'])) {
+if (isset($_POST['track-id-rating']) && isset($_POST['rating-value'])) {
     $rating_given = $_POST['rating-value'];
     $track_rated = $_POST['track-id-rating'];
     echo $rating_given;
     echo $track_rated;
-    insert_into_ratings($conn, $username, $rating_given, $track_rated);
+    insert_into_ratings($conn, $logged_in_username, $rating_given, $track_rated);
 }
 
-$artist_info = fetch_artist_details($conn, $artist_title, $username);
 
+if (isset($_POST['user_play_track'])) {
+    $track_id = htmlspecialchars($_POST['user_play_track']);
+    insert_into_playhistory($conn, $track_id, $artist_title, $logged_in_username);
+}
 
-function fetch_artist_details($conn, $artist_title, $username) {
+$my_playlists = get_my_playlists($conn, $logged_in_username);
+$artist_info = fetch_artist_details($conn, $artist_title, $logged_in_username, $my_playlists);
+
+function fetch_artist_details($conn, $artist_title, $username, $my_playlists) {
     $artist_info['artist_title'] = $artist_title;
     $conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 
@@ -44,23 +50,26 @@ function fetch_artist_details($conn, $artist_title, $username) {
         $artist_info['artist_desc'] = $rows['artist_desc'];
         $artist_info['track_count'] = $rows['track_count'];
 
-
-        $sql = fetch_top_songs_by_artist();
-        $stmt = $conn->prepare($sql);
-        $stmt->execute([$artist_title]);
+        if ($my_playlists) {
+            $sql = fetch_top_songs_by_artist();
+            $stmt = $conn->prepare($sql);
+            $stmt->execute([$artist_title, $username]);
+        }
+        else {
+            $sql = fetch_top_songs_by_artist_1();
+            $stmt = $conn->prepare($sql);
+            $stmt->execute([$artist_title]);
+        }
         $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
         if ($stmt->rowCount() > 0) {
             $artist_info['top_songs'] = $rows;
         }
-        else {
-            $sql = fetch_all_tracks_of_artist();
-            $stmt = $conn->prepare($sql);
-            $stmt->execute([$artist_title]);
-            $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
-            $artist_info['all_songs'] = $rows;
-        }
 
-
+        $sql = fetch_all_tracks_of_artist();
+        $stmt = $conn->prepare($sql);
+        $stmt->execute([$artist_title]);
+        $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        $artist_info['all_songs'] = $rows;
 
         if ($username) {
             $sql = does_user_like_artist();
@@ -82,9 +91,12 @@ function fetch_artist_details($conn, $artist_title, $username) {
     return $artist_info;
 }
 
-if (isset($_POST['user_play_track'])) {
-    $track_id = htmlspecialchars($_POST['user_play_track']);
-    insert_into_playhistory($conn, $track_id, $artist_title, $username);
+function get_my_playlists($conn, $username) {
+    $sql = fetch_my_playlists();
+    $stmt = $conn->prepare($sql);
+    $stmt->execute([$username]);
+    $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    return $rows;
 }
 
 function insert_into_playhistory($conn, $track_id, $artist_title, $username) {
@@ -107,14 +119,11 @@ function insert_into_ratings($conn, $username, $rating_given, $track_rated) {
         <link rel="stylesheet" type="text/css" href="css/style.css">
         <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
         <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
-        <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.6/js/bootstrap.min.js" integrity="sha384-vBWWzlZJ8ea9aCX4pEW3rVHjgjt7zpkNpZk+02D9phzyeVkE+jo0ieGizqPLForn" crossorigin="anonymous"></script>
-        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
-        <link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css">
+        <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
     </head>
     <body>
-
+        <?php require 'header.php'; ?>
         <div id="page-container">
-
             <?php if (isset($artist_info['error'])): ?>
                 <div class="alert alert-danger alert-dismissable">
                     <a href="#" class="close" data-dismiss="alert" aria-label="close">&times;</a>
@@ -134,7 +143,7 @@ function insert_into_ratings($conn, $username, $rating_given, $track_rated) {
                         <!-- Displaying Artist Summary -->
                         <div id="artist-summary">
                             <h1><?php echo ucwords($artist_info['artist_title']); ?> Songs</h1>
-                            <p><?php echo $artist_info['track_count']; ?> Tracks | <?php echo $artist_info['like_count'] ?> Likes</p>
+                            <a href=""><p><?php echo $artist_info['track_count']; ?> Tracks</a> | <?php echo $artist_info['like_count'] ?> Likes</p>
                         </div>
                         <!-- Displaying Artist Summary -->
 
@@ -171,91 +180,49 @@ function insert_into_ratings($conn, $username, $rating_given, $track_rated) {
                     </div>
                 </div>    
                 <!-- Displaying Artist Info -->
-
+                <br>
                 <!-- Displaying Top songs -->
-                <?php if ($artist_info['top_songs']): ?>
-                    <div id = "top-songs">
-                        <h3>Top Songs</h3>
-                        <ul id="top-songs-headers" class="row">
-                            <li class="song-header-cnt col-sm-1">#</li>
-                            <li class="song-header-title col-sm-4">TITLE</li>
-                            <li class="song-header-rating col-sm-1">AVG. RATINGS</li>
-                            <li class="song-header-duration col-sm-1">DURATION</li>
-                            <li class="song-header-rate">RATE</li>
-                        </ul>
-                        <?php foreach ($artist_info['top_songs'] as $i => $arr): ?>
-                            <ul id ="nav-<?php echo $i; ?>" class="row pay-load">
-                                <li class="song-header-cnt col-sm-1"><?php echo $i + 1; ?></li>
-                                <form id="nav-<?php echo $arr['TrackId']; ?>" method="POST" action="#nav-<?php echo $i; ?>">
-                                    <input type="hidden" name="user_play_track" id="user_play_track" value="<?php echo $arr['TrackId']; ?>"/>
-                                    <li class="song-header-title col-sm-4">
-                                        <a onclick="document.getElementById('nav-<?php echo $arr['TrackId']; ?>').submit();">
-                                            <?php echo ucwords($arr['TrackName']); ?>
-                                        </a>
-                                    </li>
-                                </form>
-                                <li class="song-header-rating col-sm-1"><?php echo number_format($arr['avg_rating'], 2, '.', ''); ?></li>
-                                <li class="song-header-duration col-sm-1"><?php echo number_format(($arr['TrackDuration'] / 60000), 2, ':', ''); ?></li>
-                                <li>
-                                    <fieldset class="rating">
-                                        <input type="radio" id="star5" name="rating" value="5" /><label for="star5" title="Rocks!">5 stars</label>
-                                        <input type="radio" id="star4" name="rating" value="4" /><label for="star4" title="Pretty good">4 stars</label>
-                                        <input type="radio" id="star3" name="rating" value="3" /><label for="star3" title="Meh">3 stars</label>
-                                        <input type="radio" id="star2" name="rating" value="2" /><label for="star2" title="Kinda bad">2 stars</label>
-                                        <input type="radio" id="star1" name="rating" value="1" /><label for="star1" title="Sucks big time">1 star</label>
-                                    </fieldset>
-                                </li>
-                            </ul>
-
-                        <?php endforeach; ?>
+                <div class="panel-group" id="accordion">
+                    <div class="panel panel-default">
+                        <div class="panel-heading">
+                            <h3 class="panel-title">
+                                <a data-toggle="collapse" data-parent="#accordion" href="#collapse1">Top Songs</a>
+                            </h3>
+                        </div>
+                        <div id="collapse1" class="panel-collapse collapse in">
+                            <?php if ($artist_info['top_songs']): ?>
+                                <?php
+                                $div_appender = "top-songs";
+                                $song_type_to_fetch = $artist_info['top_songs'];
+                                require 'render-songs.php';
+                                ?>
+                            <?php else: ?>
+                                <p>No Songs Rated yet!</p>
+                            <?php endif; ?>
+                        </div>
+                        <div class="panel panel-default">
+                            <div class="panel-heading">
+                                <h3 class="panel-title">
+                                    <a data-toggle="collapse" data-parent="#accordion" href="#collapse2">All Songs</a>
+                                </h3>
+                                <div id="collapse2" class="panel-collapse collapse">
+                                    <div class="panel-body">
+                                        <?php
+                                        if ($artist_info['all_songs']) {
+                                            $div_appender = "all-songs";
+                                            $song_type_to_fetch = $artist_info['all_songs'];
+                                            require 'render-songs.php';
+                                        }
+                                        ?>
+                                    <?php else: ?>
+                                        <p>No Songs by <?php echo $artist_info['artist_title'] ?> yet!</p>    
+                                    <?php endif; ?>
+                                </div>
+                            </div>
+                        </div>
                     </div>
-                <?php endif; ?>
-                <!-- Displaying Top songs -->
-
-                <!-- Displaying All songs -->
-                <?php if ($artist_info['all_songs']): ?>
-                    <div id = "top-songs">
-                        <h3>All Songs</h3>
-                        <ul id="top-songs-headers" class="row">
-                            <li class="song-header-cnt col-sm-1">#</li>
-                            <li class="song-header-title col-sm-4">TITLE</li>
-                            <li class="song-header-rating col-sm-1">AVG. RATINGS</li>
-                            <li class="song-header-duration col-sm-1">DURATION</li>
-                            <li class="song-header-rate">RATE</li>
-                        </ul>
-                        <?php foreach ($artist_info['all_songs'] as $i => $arr): ?>
-                            <ul id ="nav-<?php echo $i; ?>" class="row pay-load">
-                                <li class="song-header-cnt col-sm-1"><?php echo $i + 1; ?></li>
-                                <form id="nav-<?php echo $arr['TrackId']; ?>" method="POST" action="#nav-<?php echo $i; ?>">
-                                    <input type="hidden" name="user_play_track" id="user_play_track" value="<?php echo $arr['TrackId']; ?>"/>
-                                    <li class="song-header-title col-sm-4">
-                                        <a onclick="document.getElementById('nav-<?php echo $arr['TrackId']; ?>').submit();">
-                                            <?php echo ucwords($arr['TrackName']); ?>
-                                        </a>
-                                    </li>
-                                </form>
-                                <li class="song-header-rating col-sm-1"><?php echo number_format($arr['avg_rating'], 2, '.', ''); ?></li>
-                                <li class="song-header-duration col-sm-1"><?php echo number_format(($arr['TrackDuration'] / 60000), 2, ':', ''); ?></li>
-                                <form id="rating-<?php echo $arr['TrackId']; ?>" method="POST" action="#nav-<?php echo $i; ?>">
-                                    <input type="hidden" value="<?php echo $arr['TrackId']; ?>" id="track-id-rating" name="track-id-rating"/>
-                                    <li>
-                                        <select id="rating-value" name="rating-value" onchange="document.getElementById('rating-<?php echo $arr['TrackId']?>').submit();">
-                                            <option value="1" >1</option>
-                                            <option value="2" >2</option>
-                                            <option value="3" >3</option>
-                                            <option value="4" >4</option>
-                                            <option value="5" >5</option>
-                                        </select>
-                                    </li>
-                                </form>
-                            </ul>
-
-                        <?php endforeach; ?>
-                    </div>
-                <?php endif; ?>
-                <!-- Displaying All songs -->
-
-            <?php endif; ?>
+                </div>
+            </div>
         </div>
         <div class="iframe-container">
             <div style="overflow: hidden;"></div>

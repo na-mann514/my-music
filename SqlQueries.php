@@ -1,6 +1,6 @@
 <?php
 
-/* 
+/*
  * To change this license header, choose License Headers in Project Properties.
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
@@ -12,7 +12,26 @@ function fetch_artist_bio_details() {
 }
 
 function fetch_top_songs_by_artist() {
-    $sql = "SELECT t.TrackId, t.TrackName, t.TrackDuration, avg(r.Rating) as avg_rating from tracks t natural join Rating r where t.ArtistTitle = ? group by t.TrackId order by avg_rating desc limit 25";
+    $sql = "SELECT t.TrackId, t.TrackName, t.ArtistTitle, t.TrackDuration, avg(r.Rating) as avg_rating, pt.PlaylistId "
+        . "from tracks t "
+        . "natural join Rating r "
+        . "left outer join PlayTracks pt on pt.TrackId = t.TrackId "
+        . "cross join Playlist pl "
+        . "where t.ArtistTitle = ? and pl.UName = ? "
+        . "group by t.TrackId "
+        . "order by avg_rating "
+        . "desc limit 25";
+    return $sql;
+}
+
+function fetch_top_songs_by_artist_1() {
+    $sql = "SELECT t.TrackId, t.TrackName, t.ArtistTitle, t.TrackDuration, avg(r.Rating) as avg_rating "
+        . "from tracks t "
+        . "natural join Rating r "
+        . "where t.ArtistTitle = ? "
+        . "group by t.TrackId "
+        . "order by avg_rating "
+        . "desc limit 25";
     return $sql;
 }
 
@@ -37,12 +56,12 @@ function check_if_artist_exists() {
 }
 
 function fetch_all_tracks_of_artist() {
-    $sql = "SELECT t.TrackId, t.TrackName, t.TrackDuration, ifnull(avg(r.rating),0) as avg_rating from tracks t left outer join Rating r on t.TrackId = r.TrackId where t.ArtistTitle= ? group by t.TrackId";
+    $sql = "SELECT t.TrackId, t.TrackName, t.ArtistTitle, t.TrackDuration, ifnull(avg(r.rating),0) as avg_rating from tracks t left outer join Rating r on t.TrackId = r.TrackId where t.ArtistTitle= ? group by t.TrackId";
     return $sql;
 }
 
 function fetch_user_bio_details() {
-    $sql = "SELECT Email as EmailId,UName from user where UName = ?";
+    $sql = "SELECT Email , UName from user where UName = ?";
     return $sql;
 }
 
@@ -76,6 +95,11 @@ function fetch_self_playlists() {
     return $sql;
 }
 
+function fetch_public_playlists() {
+    $sql = "SELECT PlaylistName as self_playlist from Playlist where UName = ? and is_private = 0";
+    return $sql;
+}
+
 function fetch_other_users_playlists() {
     $sql = "SELECT PlaylistName as users_playlist from Playlist where UName = ? and Is_Private='0'";
     return $sql;
@@ -98,13 +122,23 @@ function fetch_artistfromtracks() {
 
 function fetch_searchtracks() {
 
-    $sql="SELECT t.TrackId, t.TrackName, t.ArtistTitle, t.TrackDuration, ifnull(avg(r.rating),0) as avg_rating from tracks t left outer join Rating r on r.TrackId = t.TrackId where TrackName like ? group by t.TrackId order by avg_rating desc LIMIT 10";
+    $sql = "SELECT t.TrackId, t.TrackName, t.ArtistTitle, t.TrackDuration, ifnull(avg(r.rating),0) as avg_rating from tracks t left outer join Rating r on r.TrackId = t.TrackId"
+        . " left outer join PlayTracks pt on pt.TrackId = t.TrackId "
+        . " cross join Playlist pl "
+        . "where TrackName like ? and pl.UName = ? group by t.TrackId order by avg_rating desc LIMIT 10";
+    return $sql;
+}
+
+function fetch_searchtracks_1() {
+
+    $sql = "SELECT t.TrackId, t.TrackName, t.ArtistTitle, t.TrackDuration, ifnull(avg(r.rating),0) as avg_rating from tracks t left outer join Rating r on r.TrackId = t.TrackId "
+        . "where TrackName like ? group by t.TrackId order by avg_rating desc LIMIT 10";
     return $sql;
 }
 
 function fetch_searchtracks1() {
 
-    $sql="SELECT t.TrackId, t.TrackName, t.ArtistTitle, t.TrackDuration, avg(rating) as avg_rating from tracks t join Rating r where TrackName like ? group by t.TrackId order by avg_rating desc LIMIT 50";
+    $sql = "SELECT t.TrackId, t.TrackName, t.ArtistTitle, t.TrackDuration, avg(rating) as avg_rating from tracks t join Rating r where TrackName like ? group by t.TrackId order by avg_rating desc LIMIT 50";
     return $sql;
 }
 
@@ -122,6 +156,7 @@ function fetch_searchartists() {
     $sql = "select ArtistTitle from artists where ArtistTitle like ? limit 12";
     return $sql;
 }
+
 function fetch_searchartists1() {
     $sql = "select ArtistTitle from artists where ArtistTitle like ?";
     return $sql;
@@ -148,28 +183,43 @@ function fetch_playlists_of_users_you_follow() {
 }
 
 function login() {
-$sql="SELECT * FROM login_info WHERE uname=? AND pass=?";
-return $sql;
+    $sql = "SELECT * FROM login_info WHERE uname=? AND pass=?";
+    return $sql;
 }
 
 function insert_user() {
-$sql= "INSERT into user (UName,Name,Email,City) VALUES (?,?,?,?)";
-return $sql;
+    $sql = "INSERT into user (UName,Name,Email,City) VALUES (?,?,?,?)";
+    return $sql;
 }
 
 function insert_login_info() {
-$sql= "INSERT into login_info (UName,Pass) VALUES (?,?)";
-return $sql;
+    $sql = "INSERT into login_info (UName,Pass) VALUES (?,?)";
+    return $sql;
 }
 
 function album_info() {
-$sql="select TrackId,TrackName,TrackDuration,ArtistTitle,AlbumName from tracks join albums where tracks.AlbumId=? and tracks.AlbumId=albums.AlbumId";
-return $sql;
+    $sql = "select t.TrackId, t.TrackName, t.TrackDuration, t.ArtistTitle, a.AlbumName, pt.PlaylistId, ifnull(avg(r.rating),0) as avg_rating "
+        . "from tracks t join albums a "
+        . "left outer join Rating r on r.TrackId = t.TrackId "
+        . "left outer join PlayTracks pt on pt.TrackId = t.TrackId "
+        . "cross join Playlist p "
+        . "where t.AlbumId=? and t.AlbumId=a.AlbumId and p.UName = ? "
+        . "group by t.TrackId";
+    return $sql;
+}
+
+function album_info_1() {
+    $sql = "select t.TrackId, t.TrackName, t.TrackDuration, t.ArtistTitle, a.AlbumName, ifnull(avg(r.rating),0) as avg_rating "
+        . "from tracks t join albums a "
+        . "left outer join Rating r on r.TrackId = t.TrackId "
+        . "where t.AlbumId=? and t.AlbumId=a.AlbumId "
+        . "group by t.TrackId";
+    return $sql;
 }
 
 function album_name() {
-$sql="select AlbumName from albums where AlbumId=?";
-return $sql;
+    $sql = "select AlbumName from albums where AlbumId=?";
+    return $sql;
 }
 
 function insert_into_likes() {
@@ -183,18 +233,66 @@ function delete_from_likes() {
 }
 
 function fetch_user_play_history() {
-    $sql = "SELECT t.TrackId, t.TrackName, t.ArtistTitle, t.TrackDuration, ifnull(avg(r.rating),0) as avg_rating from tracks t join PlayHistory p on t.TrackId = p.TrackId left outer join Rating r on r.TrackId = p.TrackId  where p.UName = :uname group by p.PTime order by PTime desc LIMIT :offset , :max_limit";
-    //$sql = "SELECT t.TrackId, t.TrackName, t.ArtistTitle, t.TrackDuration, ifnull(avg(r.rating),0) as avg_rating from tracks t join PlayHistory p on t.TrackId = p.TrackId left outer join Rating r on r.TrackId = p.TrackId  where UName = :uname order by PTime desc LIMIT :offset , :max_limit";
+    $sql = "SELECT t.TrackId, t.TrackName, t.ArtistTitle, t.TrackDuration, ifnull(avg(r.rating),0) as avg_rating, pt.PlaylistId "
+        . "from tracks t join PlayHistory p on t.TrackId = p.TrackId "
+        . "left outer join Rating r on r.TrackId = p.TrackId  "
+        . "left outer join PlayTracks pt on pt.TrackId = t.TrackId "
+        . "cross join Playlist pl "
+        . "where p.UName = :uname group by p.PTime "
+        . "order by PTime desc LIMIT :offset , :max_limit";
+
+    return $sql;
+}
+
+function fetch_user_play_history_1() {
+    $sql = "SELECT t.TrackId, t.TrackName, t.ArtistTitle, t.TrackDuration, ifnull(avg(r.rating),0) as avg_rating "
+        . "from tracks t join PlayHistory p on t.TrackId = p.TrackId "
+        . "left outer join Rating r on r.TrackId = p.TrackId "
+        . "where p.UName = :uname group by p.PTime "
+        . "order by PTime desc LIMIT :offset , :max_limit";
+
     return $sql;
 }
 
 function fetch_best_songs() {
-    $sql = "SELECT t.TrackId, t.TrackName, t.ArtistTitle, t.TrackDuration, avg(rating) as avg_rating from tracks t join Rating r on r.TrackId = t.TrackId group by t.TrackId order by avg_rating desc LIMIT :offset , :max_limit";
+    $sql = "SELECT t.TrackId, t.TrackName, t.ArtistTitle, t.TrackDuration, avg(rating) as avg_rating, pt.PlaylistId
+            from tracks t 
+            join Rating r on r.TrackId = t.TrackId
+            left outer join PlayTracks pt on pt.TrackId = t.TrackId
+            cross join Playlist p
+            where p.UName = :uname
+            group by t.TrackId
+            order by avg_rating desc 
+            LIMIT :offset, :max_limit";
+    return $sql;
+}
+
+function fetch_best_songs_1() {
+    $sql = "SELECT t.TrackId, t.TrackName, t.ArtistTitle, t.TrackDuration, avg(rating) as avg_rating, NULL AS PlaylistId
+            from tracks t join Rating r on r.TrackId = t.TrackId
+            group by t.TrackId
+            order by avg_rating desc 
+            LIMIT :offset, :max_limit";
     return $sql;
 }
 
 function fetch_songs_by_artist_you_like() {
-    $sql = "SELECT x.TrackId, x.TrackName, x.ArtistTitle, x.TrackDuration, ifnull(avg(r.Rating),0) as avg_rating FROM (SELECT t.TrackId, t.TrackName, t.ArtistTitle, t.TrackDuration from tracks t join Likes l on (l.ArtistTitle = t.ArtistTitle) where l.UName = :uname) as x left outer join Rating r on r.TrackId = x.TrackId group by x.TrackId order by avg_rating desc limit :offset , :max_limit";
+    $sql = "SELECT x.TrackId, x.TrackName, x.ArtistTitle, x.TrackDuration, ifnull(avg(r.Rating),0) as avg_rating, pt.PlaylistId "
+        . "FROM (SELECT t.TrackId, t.TrackName, t.ArtistTitle, t.TrackDuration "
+        . "from tracks t join Likes l on (l.ArtistTitle = t.ArtistTitle) "
+        . "where l.UName = :uname) as x left outer join Rating r on r.TrackId = x.TrackId "
+        . "left outer join PlayTracks pt on pt.TrackId = x.TrackId "
+        . "cross join Playlist p "
+        . "group by x.TrackId order by avg_rating desc limit :offset , :max_limit";
+    return $sql;
+}
+
+function fetch_songs_by_artist_you_like_1() {
+    $sql = "SELECT x.TrackId, x.TrackName, x.ArtistTitle, x.TrackDuration, ifnull(avg(r.Rating),0) as avg_rating "
+        . "FROM (SELECT t.TrackId, t.TrackName, t.ArtistTitle, t.TrackDuration "
+        . "from tracks t join Likes l on (l.ArtistTitle = t.ArtistTitle) "
+        . "where l.UName = :uname) as x left outer join Rating r on r.TrackId = x.TrackId "
+        . "group by x.TrackId order by avg_rating desc limit :offset , :max_limit";
     return $sql;
 }
 
@@ -202,7 +300,6 @@ function fetch_recent_albums() {
     $sql = "select AlbumId, AlbumName from albums order by AlbumReleaseDate desc limit :offset , :max_limit";
     return $sql;
 }
-
 
 function fetch_ratings_for_track() {
     $sql = "select TrackId, Rating from Rating where TrackId IN :all_tracks and UName = 'dj'";
@@ -216,5 +313,25 @@ function insert_into_ratings_sql() {
 
 function insert_or_update_into_ratings_sql() {
     $sql = "insert into Rating values(?, ?, ?, now()) ON DUPLICATE KEY UPDATE Rating = ?, RTime = now()";
+    return $sql;
+}
+
+function fetch_my_playlists() {
+    $sql = "SELECT PlaylistId, PlaylistName from Playlist where UName = ?";
+    return $sql;
+}
+
+function insert_into_playlist_tracks() {
+    $sql = "INSERT into PlayTracks values(?, ?)";
+    return $sql;
+}
+
+function fetch_search_users() {
+    $sql = "SELECT UName, Name from user where UName like ? OR Name like ?";
+    return $sql;
+}
+
+function insert_new_playlist() {
+    $sql = "INSERT INTO Playlist values(?, ?, ?)";
     return $sql;
 }

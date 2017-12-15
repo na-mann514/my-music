@@ -11,36 +11,54 @@ require_once 'SqlQueries.php';
 
 $db_conn = new DBConnection();
 $conn = $db_conn->getDBConnection();
+$logged_in_username = $_SESSION['username'];
 
-if (isset($_GET['album_id']))
-$album_id = htmlspecialchars($_GET['album_id']);
+if (isset($_GET['id']))
+    $album_id = htmlspecialchars($_GET['id']);
 
-$username ='dj'; // $_SESSION['username'];
 
-$album_info = fetch_album_details($conn, $album_id);
+if (isset($_POST['user_play_track']) && isset($_POST['artist-title'])) {
+    $track_id = htmlspecialchars($_POST['user_play_track']);
+    $artist_title = $_POST['artist-title'];
+    insert_into_playhistory($conn, $track_id, $artist_title, $logged_in_username);
+}
 
-function fetch_album_details($conn, $album_id) {
-    $conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+if (isset($_POST['track-id-rating']) && isset($_POST['rating-value'])) {
+    $rating_given = $_POST['rating-value'];
+    $track_rated = $_POST['track-id-rating'];
+    insert_into_ratings($conn, $logged_in_username, $rating_given, $track_rated);
+}
 
-    $sql = album_info();
+$my_playlists = get_my_playlists($conn, $logged_in_username);
+$album_info = fetch_album_details($conn, $album_id, $logged_in_username, $my_playlists);
+
+function insert_into_ratings($conn, $username, $rating_given, $track_rated) {
+    $sql = insert_or_update_into_ratings_sql();
     $stmt = $conn->prepare($sql);
-    $stmt->execute([$album_id]);  
+    $stmt->execute([$track_rated, $username, $rating_given, $rating_given]);
+}
+
+function fetch_album_details($conn, $album_id, $username, $my_playlists) {
+    $conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+    if ($my_playlists) {
+        $sql = album_info();
+        $stmt = $conn->prepare($sql);
+        $stmt->execute([$album_id, $username]);
+    } else {
+        $sql = album_info_1();
+        $stmt = $conn->prepare($sql);
+        $stmt->execute([$album_id]);
+    }
     $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
     $album_info['all_songs'] = $rows;
 
     $sql = album_name();
     $stmt = $conn->prepare($sql);
-    $stmt->execute([$album_id]);  
+    $stmt->execute([$album_id]);
     $rows = $stmt->fetch(PDO::FETCH_ASSOC);
     $album_info['AlbumName'] = $rows['AlbumName'];
 
     return $album_info;
-}
-
-if (isset($_POST['user_play_track']) && isset($_POST['user_play_artist'])) {
-    $track_id = htmlspecialchars($_POST['user_play_track']);
-    $artist_title = htmlspecialchars($_POST['user_play_artist']);
-    insert_into_playhistory($conn, $track_id, $artist_title, $username);
 }
 
 function insert_into_playhistory($conn, $track_id, $artist_title, $username) {
@@ -48,6 +66,14 @@ function insert_into_playhistory($conn, $track_id, $artist_title, $username) {
     $sql = insert_into_play_history();
     $stmt = $conn->prepare($sql);
     $stmt->execute([$username, $track_id, $artist_title]);
+}
+
+function get_my_playlists($conn, $username) {
+    $sql = fetch_my_playlists();
+    $stmt = $conn->prepare($sql);
+    $stmt->execute([$username]);
+    $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    return $rows;
 }
 ?>
 <!DOCTYPE html>
@@ -57,77 +83,38 @@ function insert_into_playhistory($conn, $track_id, $artist_title, $username) {
         <link rel="stylesheet" type="text/css" href="css/style.css">
         <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
         <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
-        <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.6/js/bootstrap.min.js" integrity="sha384-vBWWzlZJ8ea9aCX4pEW3rVHjgjt7zpkNpZk+02D9phzyeVkE+jo0ieGizqPLForn" crossorigin="anonymous"></script>
-        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+        <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+
     </head>
-    <body><?php require_once 'header.html'; ?>
-
-
-
-<div id="artist-summary">
-<h1>Album Name:<?php echo ucwords($album_info['AlbumName']); ?> </h1>
-</div>
-
-
+    <body><?php require_once 'header.php'; ?>
 
         <div id="page-container">
+            <?php if (isset($_SESSION['add-to-playlist']['error'])): ?><div><p class="alert alert-danger row"><?php
+                echo $_SESSION['add-to-playlist']['error'];
+                unset($_SESSION['add-to-playlist']['error']);
+                ?></p></div><?php endif; ?>
+                    <?php if (isset($_SESSION['add-to-playlist']['success'])): ?><div><p class="alert alert-success"><?php
+                echo $_SESSION['add-to-playlist']['success'];
+                unset($_SESSION['add-to-playlist']['success']);
+                ?></p></div><?php endif; ?>
+                    <?php if (isset($_SESSION['add-to-playlist']['info'])): ?><div><p class="alert alert-info"><?php
+                echo $_SESSION['add-to-playlist']['info'];
+                unset($_SESSION['add-to-playlist']['info']);
+                ?></p></div><?php endif; ?>
 
-            <?php if (isset($album_info['error'])): ?>
-                <div class="alert alert-danger alert-dismissable">
-                    <a href="#" class="close" data-dismiss="alert" aria-label="close">&times;</a>
-                    <?php echo $album_info['error']['message']; ?>
+            <div id="album-summary">
+                <h1><?php echo ucwords($album_info['AlbumName']); ?> </h1>
+            </div>
+
+            <!-- Displaying album songs -->
+            <?php if ($album_info['all_songs']): ?>
+                <div id = "album-songs">
+                    <?php
+                    $song_type_to_fetch = $album_info['all_songs'];
+                    $div_appender = 'all-songs';
+                    require 'render-songs.php';
+                    ?>
                 </div>
-            <?php endif; ?>
-
-            <?php if (!isset($album_info['error'])): ?>
-
-                <!-- Displaying Artist Info -->
-                <div id="artist-bio" class="row">
-                    <div id="artist-image" class="col-sm-5">
-                        <li class="song-header-duration col-sm-3"><?php echo ucwords($arr['AlbumName']);?></li>
-                    </div>
-                </div>   
-
-                
-
-                <!-- Displaying Top songs -->
-                <?php if ($album_info['all_songs']): ?>
-                    <div id = "top-songs">
-                       
-                        <ul id="top-songs-headers" class="row">
-                            <li class="song-header-duration col-sm-3"><?php echo ucwords($arr['AlbumName']);?></li>
-                            <li class="song-header-cnt col-sm-3">#</li>
-                            <li class="song-header-title col-sm-3">TRACK NAME</li>
-                            <li class="song-header-duration col-sm-3">DURATION</li>
-                            <li class="song-header-atitle col-sm-3">ARTIST TITLE</li>
-                        </ul>
-                        <?php foreach ($album_info['all_songs'] as $i => $arr): ?>
-                            <ul id ="nav-<?php echo $i; ?>" class="row pay-load">
-                                <li class="song-header-cnt col-sm-3"><?php echo $i + 1; ?></li>
-                                <form id="nav-<?php echo $arr['TrackId']; ?>" method="POST" action="#nav-<?php echo $i;?>">
-                                    <input type="hidden" name="user_play_track" id="user_play_track" value="<?php echo $arr['TrackId']; ?>"/>
-                                     <input type="hidden" name="user_play_artist" id="user_play_artist" value="<?php echo $arr['ArtistTitle']; ?>"/>
-                                    <li class="song-header-title col-sm-3">
-                                        <a onclick="document.getElementById('nav-<?php echo $arr['TrackId']; ?>').submit();">
-                                            <?php echo ucwords($arr['TrackName']); ?>
-                                        </a>
-                                    </li>
-                                </form>
-                                
-                                <li class="song-header-duration col-sm-3"><?php echo number_format(($arr['TrackDuration'] / 60000), 2, ':', ''); ?></li>
-
-                                <li class="song-header-title col-sm-3">
-                                  <?php $temp1= ucwords($arr['ArtistTitle']); ?>
-                            <a href="artistbio.php?aname=<?php echo $temp1; ?>"><?php echo ucwords($arr['ArtistTitle']); ?></a>
-                    
-                                    </li>
-                            </ul>
-
-                        <?php endforeach; ?>
-                    </div>
-                <?php endif; ?>
-              
-
             <?php endif; ?>
         </div>
         <div class="iframe-container">
