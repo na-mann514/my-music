@@ -204,7 +204,7 @@ function get_my_playlists($conn, $username) {
                         <ul class="row">
                             <table class="table-bordered table-hover">
                                 <?php foreach ($playlists_of_users_you_follow as $i => $arr): ?>
-                                <tr><li class="col-md-1"><a href="./playlist.php?id=<?php echo $arr['PlaylistId']; ?>"><?php echo $arr['PlaylistName']; ?></a></li></tr>
+                                    <tr><li class="col-md-1"><a href="./playlist.php?id=<?php echo $arr['PlaylistId']; ?>"><?php echo $arr['PlaylistName']; ?></a></li></tr>
                                 <?php endforeach; ?>
                             </table>
                         </ul>
@@ -222,7 +222,12 @@ function get_my_playlists($conn, $username) {
                 ?>
             <?php endif; ?>
 
-
+            <br/>
+            <br/>
+            <br/>
+            <br/>
+            <br/>
+            <br/>
         </div>
         <div class="iframe-container">
             <div style="overflow: hidden;"></div>
