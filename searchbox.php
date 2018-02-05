@@ -38,13 +38,16 @@ function get_my_playlists($conn, $username) {
 function get_search_tracks($conn, $keyword1, $username, $my_playlists) {
     if($my_playlists) {
         $sql = fetch_searchtracks();
+        $stmt = $conn->prepare($sql);
         $stmt->execute([$keyword1, $username]);
     }
     else {
         $sql = fetch_searchtracks_1();
+        $stmt = $conn->prepare($sql);
+        $stmt->execute([$keyword1]);
     }
-    $stmt = $conn->prepare($sql);
-    $stmt->execute([$keyword1]);
+    
+    
     $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
     return $rows;
 }
@@ -150,7 +153,12 @@ function insert_into_ratings($conn, $username, $rating_given, $track_rated) {
                     </ul>
                 </div>
             <?php endif; ?>
-
+            <br/>
+            <br/>
+            <br/>
+            <br/>
+            <br/>
+            <br/>
 
 
         </div>

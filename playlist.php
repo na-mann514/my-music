@@ -70,53 +70,39 @@ function get_my_playlists($conn, $username) {
 
         <div id="page-container">
 
-            <?php if (isset($playlist_info['error'])): ?>
-                <div class="alert alert-danger alert-dismissable">
-                    <a href="#" class="close" data-dismiss="alert" aria-label="close">&times;</a>
-                    <?php echo $playlist_info['error']['message']; ?>
+            <!-- Displaying Artist Info -->
+            <div id="artist-bio" class="row">
+                <div id="summary-and-bio" class="col-sm-7">
+
+                    <div id="artist-summary">
+                        <h1>Playlist: <?php echo ucwords($playlist_info['PlaylistName']); ?> </h1>
+
+
+                    </div>
+
+
+                    <div id="" class="row">
+                        <div class="col-sm-3">
+                        </div>
+                    </div>
+                </div>
+            </div>   
+
+
+
+            <?php if ($playlist_info['playlist_tracks']): ?>
+                <div id = "top-songs">
+                    <h3>Songs:</h3>
+                    <?php
+                    $song_type_to_fetch = $playlist_info['playlist_tracks'];
+                    $div_appender = 'pl-songs';
+                    require 'render-songs.php';
+                    ?>
+
                 </div>
             <?php endif; ?>
 
-            <?php if (!isset($playlist_info['error'])): ?>
-
-                <!-- Displaying Artist Info -->
-                <div id="artist-bio" class="row">
-
-
-                    <div id="summary-and-bio" class="col-sm-7">
-
-                        <div id="artist-summary">
-                            <h1>Playlist: <?php echo ucwords($playlist_info['PlaylistName']); ?> </h1>
-
-
-                        </div>
-
-
-                        <div id="" class="row">
-                            <div class="col-sm-3">
-                            </div>
-                        </div>
-                    </div>
-                </div>   
-
-
-
-                <?php if ($playlist_info['playlist_tracks']): ?>
-                    <div id = "top-songs">
-                        <h3>Songs:</h3>
-                        <?php
-                        $song_type_to_fetch = $playlist_info['playlist_tracks'];
-                        $div_appender = 'pl-songs';
-                        require 'render-songs.php';
-                        ?>
-
-                    </div>
-                <?php endif; ?>
-
-                <!-- Displaying Top songs -->
-
-
-            <?php endif; ?> 
+            <!-- Displaying Top songs -->
         </div>
 
         <div class="iframe-container">

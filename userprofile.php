@@ -236,12 +236,13 @@ function fetch_user_profile_details($conn, $username, $username1) {
                     </ul>
                     <ul id ="playlist-headers" class="row pay-load">
                         <?php foreach ($user_info['self_playlist'] as $i => $arr): ?>
-
                             <li class="song-header-cnt col-sm-2"><?php echo $i + 1; ?></li>
-                            <li class="song-header-title col-sm-10"><a href="playlist.php"> <?php echo ucwords($arr['self_playlist']); ?></a></li>
+                            <li class="song-header-title col-sm-10"><a href="playlist.php?id=<?php echo $arr['PlaylistId']?>"> <?php echo ucwords($arr['self_playlist']); ?></a></li>
 
                         <?php endforeach; ?>
                     </ul>
+                        <br/>
+                        <br/>
                 </div>
             <?php else: ?>
                 <h3>Your Playlists:</h3>

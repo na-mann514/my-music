@@ -16,22 +16,18 @@ $logged_in_username = $_SESSION['username'];
 
 $my_playlists = get_my_playlists($conn, $logged_in_username);
 
-print_r($my_playlists);
 if (isset($_POST['pl-name']) && isset($_POST['pop'])) {
     $pl_name = $_POST['pl-name'];
-    echo $pl_name;
+    
     $pop = $_POST['pop'];
-    if (user_already_has_same_named_pl($my_playlists, $pl_name) == FALSE) {
-        $sql = insert_new_playlist();
+   
+     
+        $sql = "INSERT INTO Playlist (`PlaylistName`, `UName`, `Is_Private`) values('$pl_name', '$logged_in_username', b'$pop')";
+       
         $stmt = $conn->prepare($sql);
-        $stmt->execute([$pl_name, $logged_in_username, $pop]);
-    }
-    else {
+        $stmt->execute();
+        echo "Playlist successfully created!";
         
-    }
-}
-else {
-    echo 'iii';
 }
 
 //header("Location: ".$_SERVER['HTTP_REFERER']);
